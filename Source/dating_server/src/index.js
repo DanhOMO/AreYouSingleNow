@@ -9,6 +9,7 @@ const authRoutes = require("./api/routes/AuthRoute");
 const uploadRoutes = require("./api/routes/UploadRoute");
 const matchRoutes = require("./api/routes/MatchRoute");
 const messageRoutes = require("./api/routes/MessageRoute");
+const swipeRoutes = require("./api/routes/SwipeRoute");
 
 const cors = require("cors");
 connectDB();
@@ -28,6 +29,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/upload", uploadRoutes);
 app.use("/api/matches", matchRoutes);
 app.use("/api/messages", messageRoutes);
+app.use("/api/swipe", swipeRoutes);
 
 const server = http.createServer(app);
 

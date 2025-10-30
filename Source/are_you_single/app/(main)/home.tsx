@@ -1,4 +1,3 @@
-
 import { Ionicons } from "@expo/vector-icons";
 import React, { useRef, useState } from "react";
 import {
@@ -11,7 +10,7 @@ import {
   Text,
   TouchableOpacity,
   View,
-  ActivityIndicator, 
+  ActivityIndicator,
 } from "react-native";
 import Swiper from "react-native-deck-swiper";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
@@ -19,12 +18,12 @@ import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 import { useUserSuggestions } from "@hooks/useApi";
 import type { User } from "src/types/User";
 import api from "src/lib/api";
-import Loading from  "@components/Loading";
+import Loading from "@components/Loading";
 import SwipeCard from "@components/SwipeCard";
 const Home = () => {
   const [index, setIndex] = useState(0);
   const swipeDirection = useRef(new Animated.Value(0)).current;
-  const swiperRef = useRef<Swiper<User>>(null); 
+  const swiperRef = useRef<Swiper<User>>(null);
 
   const { suggestions, isLoading, isError } = useUserSuggestions();
 
@@ -33,7 +32,7 @@ const Home = () => {
     if (!user) return;
 
     console.log("LIKE user:", user.id);
-    api.post('/swipes/like', { targetUserId: user.id });
+    api.post("/swipes/like", { targetUserId: user.id });
   };
 
   const handleDislike = (cardIndex: number) => {
@@ -41,7 +40,7 @@ const Home = () => {
     if (!user) return;
 
     console.log("DISLIKE user:", user.id);
-    api.post('/swipes/dislike', { targetUserId: user.id });
+    api.post("/swipes/dislike", { targetUserId: user.id });
   };
 
   if (isLoading) {
@@ -51,7 +50,9 @@ const Home = () => {
   if (isError) {
     return (
       <SafeAreaView style={[style.container, { justifyContent: "center" }]}>
-        <Text style={{ color: "red" }}>Lỗi khi tải dữ liệu. Vui lòng thử lại.</Text>
+        <Text style={{ color: "red" }}>
+          Lỗi khi tải dữ liệu. Vui lòng thử lại.
+        </Text>
       </SafeAreaView>
     );
   }
@@ -64,15 +65,15 @@ const Home = () => {
             <View style={style.cardContainer}>
               <Swiper
                 ref={swiperRef}
-                cards={suggestions || []} 
+                cards={suggestions || []}
                 cardIndex={index}
-                 renderCard={(user: User) => (
-                <SwipeCard 
-                user={user}
-                onLike = {() => handleLike(index)}
-                onDislike = {() => handleDislike(index)}
-                />  
-  )}
+                renderCard={(user: User) => (
+                  <SwipeCard
+                    user={user}
+                    onLike={() => handleLike(index)}
+                    onDislike={() => handleDislike(index)}
+                  />
+                )}
                 stackSize={2}
                 backgroundColor={"transparent"}
                 onSwiped={() => swipeDirection.setValue(0)}
@@ -80,8 +81,8 @@ const Home = () => {
                 onSwipedAll={() => console.log("Hết rồi!!")}
                 verticalSwipe={false}
                 animateCardOpacity
-                onSwipedLeft={(i) => handleDislike(i)} 
-                onSwipedRight={(i) => handleLike(i)} 
+                onSwipedLeft={(i) => handleDislike(i)}
+                onSwipedRight={(i) => handleLike(i)}
                 infinite
                 disableBottomSwipe
                 disableTopSwipe
@@ -172,7 +173,7 @@ const style = StyleSheet.create({
   card: {
     width: "95%",
     margin: "auto",
-    height: 1750,
+    height: Dimensions.get("window").height * 1.2,
     backgroundColor: "white",
   },
   imageBackground: {
