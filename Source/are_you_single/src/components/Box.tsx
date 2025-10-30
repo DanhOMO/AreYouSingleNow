@@ -13,6 +13,7 @@ interface BoxProps {
 }
 
 const Box = ({ item }: BoxProps) => {
+  
   const { partner, isLoading, isError } = usePartnerByMatchId(item.id);
   const router = useRouter();
 
@@ -23,10 +24,10 @@ const avatarUri =
   return (
     <TouchableOpacity
       style={styles.chatItem}
-     onPress={() => 
+      onPress={() => 
       router.push({
-        pathname: '/chat/[matchId]',
-        params: { matchId: item.id }
+          pathname: '/chat/[matchId]',
+          params: { matchId: item.id }
   })
 }
     >

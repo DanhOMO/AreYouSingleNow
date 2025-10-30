@@ -1,6 +1,6 @@
 import type { Message } from "./Message";
 export interface Match {
-    id: string;
+    _id: string;
     userIds: string[];
     lastMessage: Message | null;
     createdAt: string;

@@ -45,7 +45,7 @@ exports.getPartnerInfo = async (req, res) => {
         .status(404)
         .json({ message: "Người dùng này không còn tồn tại" });
     }
-
+    console.log("Đối phương:", partner);
     res.status(200).json(partner);
   } catch (error) {
     res.status(500).json({ message: error.message });

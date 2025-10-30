@@ -78,7 +78,7 @@ export default function MainTabLayout() {
       />
       <Tabs.Screen 
         name="chat" 
-        options={{ title: 'Chat', headerShown: false }} 
+        options={{ title: 'Chat'}} 
       />
        
     </Tabs>

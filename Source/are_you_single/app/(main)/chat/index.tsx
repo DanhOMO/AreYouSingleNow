@@ -27,7 +27,7 @@ const ListMatch = () => {
       </SafeAreaView>
     );
   }
-  
+  console.log("Matches:", matches);
 
 
   return (
@@ -35,11 +35,12 @@ const ListMatch = () => {
       <SafeAreaView style={styles.container}>
         <FlatList
           data={matches}
-          keyExtractor={(item) => item.id}
+          keyExtractor={(item) => item._id}
           renderItem={({ item }: { item: Match }) => (
             <Box item={item} />
           )}
           contentContainerStyle={{ paddingBottom: 100 }}
+            
         />
       </SafeAreaView>
     </SafeAreaProvider>
