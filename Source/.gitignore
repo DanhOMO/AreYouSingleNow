@@ -1,0 +1,9 @@
+# Node modules
+are_you_single/node_modules/
+dating_server/node_modules/
+
+
+
+# Log files
+*.log
+dating_server/*.json
