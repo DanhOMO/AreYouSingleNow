@@ -3,7 +3,8 @@ const router = express.Router();
 const Message = require("../../model/Message");
 
 const { getMessages } = require("../controller/MessageController");
-router.get("/", getMessages);
+const { authMiddleware } = require("../middleware/AuthMiddleware");
+router.get("/:matchId/match", authMiddleware, getMessages);
 
 router.get("/:messageId/user", async (req, res) => {
   try {
@@ -21,15 +22,20 @@ router.get("/:messageId/user", async (req, res) => {
   }
 });
 
-router.get("/:matchId", async (req, res) => {
+router.get("/:messageId", async (req, res) => {
   try {
-    const matchId = req.params.matchId;
-    const messages = await Message.find({ matchId: matchId }).sort({
-      createdAt: 1,
-    });
-    res.status(200).json(messages);
+    console.log("Fetching message by ID");
+    const messageId = req.params.messageId;
+    const message = await Message.findById(messageId);
+
+    if (!message) {
+      return res.status(404).json({ message: "Message not found" });
+    }
+
+    res.status(200).json(message);
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    console.error("Error fetching user from message:", error);
+    res.status(500).json({ message: "Internal server error" });
   }
 });
 

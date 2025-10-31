@@ -12,11 +12,11 @@ import Box from "@components/Box";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 import { Match } from "src/types/Match";
 import api from "@lib/api";
-import { useMatches } from "@hooks/useApi";
+import { chatDetail, useMatches } from "@hooks/useApi";
 import Loading from "@components/Loading";
 const ListMatch = () => {
   const { matches, isLoading, isError } = useMatches();
-  
+
   if (isLoading) {
     return <Loading />;
   }
@@ -27,7 +27,7 @@ const ListMatch = () => {
       </SafeAreaView>
     );
   }
-  console.log("Matches:", matches);
+  
 
 
   return (

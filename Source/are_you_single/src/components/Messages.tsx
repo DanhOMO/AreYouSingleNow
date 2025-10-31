@@ -1,8 +1,18 @@
+import { Partner } from "@hooks/useApi";
 import React from "react";
 import { Image, StyleSheet, Text, View } from "react-native";
-
-const Messages = ({ item, currentUser, partner }: any) => {
-  const isUser = item.sender === currentUser.name;
+import { Message } from "src/types/Message";
+import { User } from "src/types/User";
+interface MessagesProps {
+  item: Message,
+  currentUser: User,
+  partner: Partner
+}
+const Messages = ({ item, currentUser, partner }: MessagesProps) => {
+    const isUser = item.senderId === currentUser._id;
+    const avatarUri =
+  partner?.profile.photos?.[0] ??
+  "https://cdn-icons-png.flaticon.com/512/847/847969.png";
   return (
     <View
       style={[
@@ -11,7 +21,7 @@ const Messages = ({ item, currentUser, partner }: any) => {
       ]}
     >
       {!isUser && partner && (
-        <Image source={{ uri: partner.avatar }} style={styles.avatarSmall} />
+        <Image source={{ uri: avatarUri }} style={styles.avatarSmall} />
       )}
       <View
         style={[styles.bubble, isUser ? styles.bubbleRight : styles.bubbleLeft]}

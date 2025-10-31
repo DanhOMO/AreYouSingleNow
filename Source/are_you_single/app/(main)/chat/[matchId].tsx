@@ -21,6 +21,7 @@ import { useChatHistoryByMatchId, usePartnerByMatchId } from "@hooks/useApi";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import ErrorState from "@components/Error";
 import Loading from "@components/Loading";
+import { User } from "src/types/User";
 
 export default function ChatDetail() {
   const { matchId } = useLocalSearchParams<{ matchId: string }>();
@@ -29,6 +30,7 @@ export default function ChatDetail() {
   const { messages } = useChatHistoryByMatchId(matchId);
   const [inputText, setInputText] = useState("");
   const router = useRouter();
+
   // const handleSend = () => {
   //   if (!inputText.trim()) return;
 
@@ -42,9 +44,11 @@ export default function ChatDetail() {
   //   setMessages([newMessage, ...messages]);
   //   setInputText("");
   // };
+  const profile = partner?.profile;
+  
   const avatarUri =
-  partner?.photos?.[0] ??
-  "https://cdn-icons-png.flaticon.com/512/847/847969.png";
+    profile?.photos?.[0] ??
+    "https://cdn-icons-png.flaticon.com/512/847/847969.png";
 
   if (isError) {
     return <ErrorState message="Load dữ liệu không thành công!!!" />;
@@ -52,7 +56,7 @@ export default function ChatDetail() {
   if (isLoading || !partner) {
     return <Loading />;
   }
-
+  
   return (
     <SafeAreaProvider>
       <SafeAreaView style={{ flex: 1, backgroundColor: "#fff" }}>
@@ -66,17 +70,18 @@ export default function ChatDetail() {
             </TouchableOpacity>
             <View style={styles.userInfo}>
               <Image source={{ uri: avatarUri }} style={styles.avatar} />
-              <Text style={styles.name}>{partner.name}</Text>
+              <Text style={styles.name}>{profile?.name}</Text>
             </View>
           </View>
 
           <FlatList
             data={messages}
-            keyExtractor={(item) => item.id}
+            
+            keyExtractor={(item) => item._id}
             renderItem={(root) => (
               <Messages
                 item={root.item}
-                currentUser={authStore.user}
+                currentUser={authStore.user as User}
                 partner={partner}
               />
             )}

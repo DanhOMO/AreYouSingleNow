@@ -4,6 +4,7 @@ import type { User } from "src/types/User";
 import type { Match } from "src/types/Match";
 import type { Message } from "src/types/Message";
 import type { Swipe } from "src/types/Swipe";
+import { Profile } from 'src/types/Profile';
 
 // === Gợi ý người dùng (suggestions) ===
 export function useUserSuggestions() {
@@ -66,11 +67,22 @@ export function useMatches() {
     mutateMatches: mutate,
   };
 }
+export function chatDetail(messageId: string){
+  const {data,error, isLoading} = useSWR<Message>(
+  `/messages/${messageId}`
+  , fetcher
+  )
+  return {
+    message: data,
+    isLoading,
+    isError: error,
+  };
+}
 
 // === Lịch sử Chat ===
 export function useChatHistoryByMatchId(matchId : string) {
   const { data, error, isLoading, mutate } = useSWR<Message[]>(
-    matchId ? `/messages/${matchId}` : null,
+    matchId ? `/messages/${matchId}/match` : null,
     fetcher
   );
 
@@ -89,17 +101,14 @@ export function useChatHistoryByMatchId(matchId : string) {
 //   aboutMe: { type: String },
 // });
 
-export type Profile = {
-  name: string;
-  dob?: string;
-  gender?: "male" | "female" | "other";
-  photos?: string[];
-  aboutMe?: string;
-};
 
+export interface Partner {
+  _id: string;
+  profile: Profile;
+}
 
 export function usePartnerByMatchId(matchId: string) {
-  const { data, error, isLoading, mutate } = useSWR<Profile>(
+  const { data, error, isLoading, mutate } = useSWR<Partner>(
     matchId ? `/matches/${matchId}/partner` : null,
     fetcher
   );

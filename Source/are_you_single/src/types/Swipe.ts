@@ -1,5 +1,5 @@
 export interface Swipe {
-    id: string;
+    _id: string;
     swiperId: string;
     swipedId: string;
     action: 'left' | 'right';
