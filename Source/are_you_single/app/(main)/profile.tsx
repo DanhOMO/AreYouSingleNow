@@ -74,7 +74,7 @@ const Profile = () => {
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Ảnh khác</Text>
             <FlatList
-              data={user.profile.photos.slice(1)}
+              data={user.profile.photos}
               keyExtractor={(_, index) => index.toString()}
               numColumns={2}
               scrollEnabled={false}

@@ -52,7 +52,7 @@ export default function MainTabLayout() {
             iconName = focused ? 'people' : 'people-outline';
           } else if (route.name === 'likeyou') { 
             iconName = focused ? 'heart' : 'heart-outline';
-          } else if (route.name === 'messages') { 
+          } else if (route.name === 'chat') { 
             iconName = focused ? 'chatbubble' : 'chatbubble-outline';
           } else if (route.name === 'profile') {
             iconName = focused ? 'person' : 'person-outline';

@@ -6,7 +6,7 @@ import React from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { Image, TouchableOpacity } from "react-native";
 import { Match } from "src/types/Match"; 
-import { usePartnerByMatchId } from "@hooks/useApi"; 
+import { usePartnerByMatchId, chatDetail } from "@hooks/useApi"; 
 
 interface BoxProps {
   item: Match;
@@ -14,11 +14,13 @@ interface BoxProps {
 
 const Box = ({ item }: BoxProps) => {
   
-  const { partner, isLoading, isError } = usePartnerByMatchId(item.id);
+  const { partner, isLoading } = usePartnerByMatchId(item._id);
+  const {message} = chatDetail(item.lastMessageId || "");
   const router = useRouter();
-
+  const profile = partner?.profile;
+  console.log("Message", message);
 const avatarUri =
-  partner?.photos?.[0] ??
+  profile?.photos?.[0] ??
   "https://cdn-icons-png.flaticon.com/512/847/847969.png";
 
   return (
@@ -27,16 +29,16 @@ const avatarUri =
       onPress={() => 
       router.push({
           pathname: '/chat/[matchId]',
-          params: { matchId: item.id }
+          params: { matchId: item._id },
   })
 }
     >
       <Image source={{ uri: avatarUri }} style={styles.avatar} />
       <View style={styles.chatInfo}>
         
-        <Text style={styles.name}>{isLoading ? "Đang tải..." : partner?.name}</Text>
+        <Text style={styles.name}>{isLoading ? "Đang tải..." : profile?.name}</Text>
         <Text style={styles.lastMessage}>
-          {item.lastMessage ? item.lastMessage.text : "Say hi 👋"}
+          {message?.text ? message?.text : "Say hi 👋"}
         </Text>
       </View>
       <Ionicons name="chevron-forward" size={22} color="#ccc" />
