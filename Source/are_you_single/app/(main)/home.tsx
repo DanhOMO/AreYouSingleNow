@@ -31,16 +31,16 @@ const Home = () => {
     const user = suggestions?.[cardIndex];
     if (!user) return;
 
-    console.log("LIKE user:", user.id);
-    api.post("/swipes/like", { targetUserId: user.id });
+    console.log("LIKE user:", user._id);
+    api.post("/swipes/like", { targetUserId: user._id });
   };
 
   const handleDislike = (cardIndex: number) => {
     const user = suggestions?.[cardIndex];
     if (!user) return;
 
-    console.log("DISLIKE user:", user.id);
-    api.post("/swipes/dislike", { targetUserId: user.id });
+    console.log("DISLIKE user:", user._id);
+    api.post("/swipes/dislike", { targetUserId: user._id });
   };
 
   if (isLoading) {
@@ -173,7 +173,7 @@ const style = StyleSheet.create({
   card: {
     width: "95%",
     margin: "auto",
-    height: Dimensions.get("window").height * 1.2,
+    // height: Dimensions.get("window").height * 1.2,
     backgroundColor: "white",
   },
   imageBackground: {
