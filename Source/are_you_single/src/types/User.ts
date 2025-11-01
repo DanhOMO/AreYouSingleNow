@@ -5,7 +5,7 @@ import { Location } from "./Location";
 import { Detail } from "./Detail";
 
 export interface User {
-  id?: string;
+  _id?: string;
   email: string;
   password: string;
   phone: string;

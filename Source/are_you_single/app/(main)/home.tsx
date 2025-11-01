@@ -31,16 +31,16 @@ const Home = () => {
     const user = suggestions?.[cardIndex];
     if (!user) return;
 
-    console.log("LIKE user:", user.id);
-    api.post("/swipes/like", { targetUserId: user.id });
+    console.log("LIKE user:", user._id);
+    api.post("/swipes/like", { targetUserId: user._id });
   };
 
   const handleDislike = (cardIndex: number) => {
     const user = suggestions?.[cardIndex];
     if (!user) return;
 
-    console.log("DISLIKE user:", user.id);
-    api.post("/swipes/dislike", { targetUserId: user.id });
+    console.log("DISLIKE user:", user._id);
+    api.post("/swipes/dislike", { targetUserId: user._id });
   };
 
   if (isLoading) {
@@ -88,9 +88,19 @@ const Home = () => {
                 disableTopSwipe
                 stackSeparation={2}
                 swipeAnimationDuration={200}
-                cardStyle={{ width: "100%" }}
-                containerStyle={{ width: "100%" }}
+                cardStyle={{
+                  width: "100%",
+                  height: "100%",
+                  marginBottom: 90,
+                  borderRadius: 10,
+                }}
+                containerStyle={{
+                  width: "100%",
+                  height: Dimensions.get("window").height * 0.75,
+                  marginBottom: 60,
+                }}
                 cardHorizontalMargin={0}
+                cardVerticalMargin={10}
               />
             </View>
           </ScrollView>
@@ -126,7 +136,7 @@ const Home = () => {
             <Text style={[style.labelText, { color: "black" }]}>✓</Text>
           </Animated.View>
         </View>
-
+{/* 
         <View style={style.buttonNav}>
           <TouchableOpacity
             style={style.button}
@@ -140,7 +150,7 @@ const Home = () => {
           >
             <Ionicons name="heart" size={30} color="#FF6B9A" />
           </TouchableOpacity>
-        </View>
+        </View> */}
       </SafeAreaView>
     </SafeAreaProvider>
   );
@@ -173,7 +183,7 @@ const style = StyleSheet.create({
   card: {
     width: "95%",
     margin: "auto",
-    height: Dimensions.get("window").height * 1.2,
+    // height: Dimensions.get("window").height * 1.2,
     backgroundColor: "white",
   },
   imageBackground: {
