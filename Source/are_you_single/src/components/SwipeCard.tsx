@@ -42,11 +42,8 @@ const SwipeCard: React.FC<SwipeCardProps> = ({ user, onLike, onDislike }) => {
           </ImageBackground>
 
           <InfoSection title="My bio">
-            <Text style={styles.text}>
-              {user.profile?.aboutMe ?? "Chưa có mô tả."}
-            </Text>
+            <Text style={styles.text}>{user.profile?.aboutMe ?? "Chưa có mô tả."}</Text>
           </InfoSection>
-
           {user.detail?.interested?.length > 0 && (
             <InfoSection title="Sở thích">
               <View style={styles.interestContainer}>
@@ -198,14 +195,13 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     backgroundColor: "white",
     justifyContent: "space-around",
-    height: 120,
-    marginBottom: 100,
+    paddingVertical: 12,
+    marginTop: 8,
   },
   btnLeft: {
     backgroundColor: "#eee",
     borderRadius: 30,
     padding: 10,
-    height: 56,
     width: 56,
     alignItems: "center",
     justifyContent: "center",
@@ -214,7 +210,6 @@ const styles = StyleSheet.create({
     backgroundColor: "#FF4F81",
     borderRadius: 30,
     padding: 10,
-    height: 56,
     width: 56,
     alignItems: "center",
     justifyContent: "center",
