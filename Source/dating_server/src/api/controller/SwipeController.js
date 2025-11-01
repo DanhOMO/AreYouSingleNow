@@ -60,3 +60,27 @@ exports.dislikeUser = async (req, res) => {
     res.status(500).json({ success: false, message: "Lỗi khi xử lý dislike." });
   }
 };
+
+exports.getLikedYou = async (req, res) => {
+  try {
+    const loggedInUserId = req.user._id;
+
+    const swipes = await Swipe.find({
+      targetId: loggedInUserId,
+      action: "like",
+    }).populate("swiperId", "profile.name profile.avatar email");
+
+    const likedUsers = swipes.map((s) => s.swiperId);
+
+    res.status(200).json({
+      success: true,
+      count: likedUsers.length,
+      likedUsers,
+    });
+  } catch (error) {
+    console.error("❌ Lỗi khi lấy danh sách LikedYou:", error);
+    res
+      .status(500)
+      .json({ success: false, message: "Không thể tải danh sách." });
+  }
+};
