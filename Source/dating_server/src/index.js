@@ -29,7 +29,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/upload", uploadRoutes);
 app.use("/api/matches", matchRoutes);
 app.use("/api/messages", messageRoutes);
-app.use("/api/swipe", swipeRoutes);
+app.use("/api/swipes", swipeRoutes);
 
 const server = http.createServer(app);
 

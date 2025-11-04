@@ -6,7 +6,7 @@ const {
   manualMatch,
   rejectMatch,
 } = require("../controller/MatchController");
-const { authMiddleware } = require("../middleware/authMiddleware");
+const { authMiddleware } = require("../middleware/AuthMiddleware");
 
 router.get("/", authMiddleware, getMatches);
 router.get("/:matchId/partner", authMiddleware, getPartnerInfo);

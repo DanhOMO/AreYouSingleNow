@@ -74,8 +74,13 @@ exports.manualMatch = async (req, res) => {
 
     const newMatch = await Match.create({
       userIds: [loggedInUserId, targetUserId],
-      createdAt: new Date(),
-      updatedAt: new Date(),
+    });
+
+    await Swipe.deleteMany({
+      $or: [
+        { swiperId: loggedInUserId, targetId: targetUserId, action: "like" },
+        { swiperId: targetUserId, targetId: loggedInUserId, action: "like" },
+      ],
     });
 
     const populatedMatch = await Match.findById(newMatch._id).populate(
@@ -92,7 +97,6 @@ exports.manualMatch = async (req, res) => {
     res.status(500).json({ success: false, message: error.message });
   }
 };
-
 exports.rejectMatch = async (req, res) => {
   try {
     const loggedInUserId = req.user._id;

@@ -6,7 +6,7 @@ const {
   dislikeUser,
   getLikedYou,
 } = require("../controller/SwipeController");
-const { authMiddleware } = require("../middleware/authMiddleware");
+const { authMiddleware } = require("../middleware/AuthMiddleware");
 
 // Vuốt phải (LIKE)
 router.post("/like", authMiddleware, likeUser);
