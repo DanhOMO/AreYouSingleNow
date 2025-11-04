@@ -1,18 +1,25 @@
 const User = require("../../model/User");
 const Swipe = require("../../model/Swipe");
-
 exports.getSuggestions = async (req, res) => {
   try {
     const loggedInUserId = req.user.id;
 
-    const dislikedSwipes = await Swipe.find({
-      swiperId: loggedInUserId,
-      action: "dislike",
+    const relatedSwipes = await Swipe.find({
+      $or: [{ swiperId: loggedInUserId }, { targetId: loggedInUserId }],
     });
 
-    const dislikedUserIds = dislikedSwipes.map((swipe) => swipe.targetId);
+    const interactedUserIds = new Set();
 
-    const excludedIds = [loggedInUserId, ...dislikedUserIds];
+    relatedSwipes.forEach((swipe) => {
+      if (swipe.swiperId.toString() !== loggedInUserId) {
+        interactedUserIds.add(swipe.swiperId.toString());
+      }
+      if (swipe.targetId.toString() !== loggedInUserId) {
+        interactedUserIds.add(swipe.targetId.toString());
+      }
+    });
+
+    const excludedIds = [loggedInUserId, ...interactedUserIds];
 
     const users = await User.find({
       _id: { $nin: excludedIds },
@@ -25,9 +32,11 @@ exports.getSuggestions = async (req, res) => {
 
     res.status(200).json(users);
   } catch (error) {
+    console.error("Lỗi getSuggestions:", error);
     res.status(500).json({ message: error.message });
   }
 };
+
 exports.getWhoLikeMe = async (req, res) => {
   try {
     const loggedInUserId = req.user.id;

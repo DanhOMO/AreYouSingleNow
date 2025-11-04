@@ -5,33 +5,61 @@ import Swiper from "react-native-deck-swiper";
 import { ScrollView } from "react-native-gesture-handler";
 
 import SwipeCard from "@components/SwipeCard";
-import { useWhoLikedMe } from "@hooks/useApi";
+import { useWhoLikedMe, useHandleDisLike, useCreateMatch, CreateMatchArgs } from "@hooks/useApi";
 import type { User } from "src/types/User";
+import MatchSuccess from "@components/MatchSuccess";
+
 
 const LikeYou = () => {
   const { likedUsers, isLoading, isError, mutateLikedUsers } = useWhoLikedMe();
   const [refreshing, setRefreshing] = useState(false);
+  const [matchSuccessInfo, setMatchSuccessInfo] = useState<any | null>(null);
 
+  const { triggerDisLike, isMutating: isDisliking } = useHandleDisLike();
+  const {triggerCreateMatch,isCreatingMatch , matchResponse } =  useCreateMatch();
   const onRefresh = async () => {
     setRefreshing(true);
     await mutateLikedUsers();
     setRefreshing(false);
   };
 
-  const handleDisLike = (index: number) => {
+  const handleDisLike = async (index: number) => {
     const user = likedUsers?.[index];
-    if (user) {
-      console.log("👎 Bỏ qua:", user.profile.name);
+    if (user && !isDisliking) { 
+      try {
+        console.log("👎 Bỏ qua:", user.profile.name);
+        
+        const result = await triggerDisLike({ targetUserId: user._id });
+
+        if (result.success) {
+          mutateLikedUsers(); 
+        }
+
+      } catch (e) {
+        console.error("Lỗi khi dislike:", e);
+      }
     }
   };
 
-  const handleLike = (index: number) => {
+  const handleLike = async (index: number) => {
     const user = likedUsers?.[index];
-    if (user) {
-      console.log("💖 Like lại:", user.profile.name);
+    if (user && !isCreatingMatch) { 
+      try {
+        console.log("💖 Like lại (Tạo Match):", user.profile.name);
+
+
+        const result = await triggerCreateMatch({ targetUserId: user._id } as CreateMatchArgs);
+
+        if (result.success) {
+         setMatchSuccessInfo(result.match);
+          
+          mutateLikedUsers();
+        }
+      } catch (e) {
+        console.error("Lỗi khi tạo match:", e);
+      }
     }
   };
-
   if (isLoading) {
     return (
       <View style={styles.centerScreen}>
@@ -92,6 +120,11 @@ const LikeYou = () => {
             />
           </View>
         </ScrollView>
+        <MatchSuccess
+          isVisible={matchSuccessInfo !== null}
+          match={matchSuccessInfo}
+          onClose={() => setMatchSuccessInfo(null)}
+        />
       </SafeAreaView>
     </SafeAreaProvider>
   );

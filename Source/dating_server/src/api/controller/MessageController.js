@@ -32,3 +32,42 @@ exports.getMessages = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+io.on("connection", (socket) => {
+  console.log("🔌 Một client đã kết nối:", socket.id);
+
+  socket.on("joinRoom", ({ matchId }) => {
+    socket.join(matchId);
+    console.log(`Client ${socket.id} đã tham gia phòng ${matchId}`);
+  });
+
+  socket.on("sendMessage", async (data) => {
+    try {
+      const { matchId, text, senderId } = data;
+
+      const newMessage = new Message({
+        matchId: matchId,
+        senderId: senderId,
+        text: text,
+      });
+
+      let savedMessage = await newMessage.save();
+
+      await Match.findByIdAndUpdate(matchId, {
+        lastMessageId: savedMessage._id,
+      });
+
+      savedMessage = await savedMessage.populate(
+        "senderId",
+        "profile.name profile.photos"
+      );
+
+      io.to(matchId).emit("newMessage", savedMessage);
+    } catch (error) {
+      console.error("Lỗi khi gửi tin nhắn:", error);
+    }
+  });
+
+  socket.on("disconnect", () => {
+    console.log("❌ Client ngắt kết nối:", socket.id);
+  });
+});

@@ -5,7 +5,11 @@ import type { Match } from "src/types/Match";
 import type { Message } from "src/types/Message";
 import type { Swipe } from "src/types/Swipe";
 import { Profile } from 'src/types/Profile';
-
+import useSWRMutation from 'swr/mutation';
+import api from 'src/lib/api';
+export const mutator = async (url: string, { arg }: { arg: any }) => {
+  return api.post(url, arg).then((res) => res.data);
+};
 // === Gợi ý người dùng (suggestions) ===
 export function useUserSuggestions() {
   const { data, error, isLoading, mutate } = useSWR<User[]>(
@@ -118,5 +122,86 @@ export function usePartnerByMatchId(matchId: string) {
     isLoading,
     isError: error,
     mutatePartner: mutate,
+  };
+}
+
+// handle Like /like
+export function useHandleLike() {
+  const {
+    data,
+    error,
+    trigger,
+    isMutating,
+  } = useSWRMutation(
+    '/swipes/like',
+    mutator 
+  );
+
+  return {
+    triggerLike: trigger, 
+    response: data,
+    isMutating,
+    isError: error,
+  };
+}
+// handle Dislike /dislike
+export function useHandleDisLike(){
+  const {
+    data,
+    error,
+    trigger,
+    isMutating,
+  } = useSWRMutation(
+    '/swipes/dislike',
+    mutator 
+  );
+
+  return {
+    triggerDisLike: trigger, 
+    response: data,
+    isMutating,
+    isError: error,
+  };
+}
+interface CreateMatchResponse {
+  success: boolean;
+  message: string;
+  match: Match & { userIds: User[] }; 
+}
+
+
+export type  CreateMatchArgs =  {
+  targetUserId: string;
+}
+
+
+interface CreateMatchResponse {
+  success: boolean;
+  message: string;
+  match: Match & { userIds: User[] }; 
+}
+
+
+export function useCreateMatch() {
+  const {
+    data,
+    error,
+    trigger, 
+    isMutating, 
+  } = useSWRMutation<
+    CreateMatchResponse, 
+    any,                 
+    string,              
+    CreateMatchArgs      
+  >(
+    '/api/matches/manual', 
+    mutator                
+  );
+
+  return {
+    triggerCreateMatch: trigger, 
+    matchResponse: data,
+    isCreatingMatch: isMutating,
+    createMatchError: error,
   };
 }

@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import {
   View,
@@ -15,47 +16,74 @@ import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 import Messages from "@components/Messages";
 import { useAuthStore } from "@store/useAuthStore";
 
-
-
 import { useChatHistoryByMatchId, usePartnerByMatchId } from "@hooks/useApi";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import ErrorState from "@components/Error";
 import Loading from "@components/Loading";
 import { User } from "src/types/User";
+import { Message } from "src/types/Message";
+
+import { useSocket } from "@hooks/useSocket";
 
 export default function ChatDetail() {
   const { matchId } = useLocalSearchParams<{ matchId: string }>();
-  const authStore = useAuthStore();
-  const { partner, isError, isLoading } = usePartnerByMatchId(matchId);
-  const { messages } = useChatHistoryByMatchId(matchId);
+  
+  const currentUser = useAuthStore((state) => state.user);
+  
+  const { partner } = usePartnerByMatchId(matchId);
+  
+  const { messages, mutateMessages } = useChatHistoryByMatchId(matchId);
+  
   const [inputText, setInputText] = useState("");
   const router = useRouter();
 
-  // const handleSend = () => {
-  //   if (!inputText.trim()) return;
+  const socket = useSocket(matchId);
 
-  //   const newMessage = {
-  //     id: Math.random().toString(),
-  //     text: inputText,
-  //     sender: currentUser.name,
-  //     createdAt: new Date().toISOString(),
-  //   };
+  useEffect(() => {
+    if (!socket) return;
 
-  //   setMessages([newMessage, ...messages]);
-  //   setInputText("");
-  // };
+    const handleNewMessage = (newMessage: Message) => {
+      mutateMessages((currentMessages: Message[] = []) => {
+        if (currentMessages.find(m => m._id === newMessage._id)) {
+          return currentMessages;
+        }
+        return [newMessage, ...currentMessages];
+      }, false); 
+    };
+
+    socket.on('newMessage', handleNewMessage);
+
+    return () => {
+      socket.off('newMessage', handleNewMessage);
+    };
+  }, [socket, mutateMessages]);
+
+  const handleSend = () => {
+    if (!inputText.trim() || !currentUser || !matchId) return;
+
+    const tempMessage: Message = {
+      text: inputText,
+      senderId: currentUser._id! ,
+      matchId: matchId! ,
+      createdAt: new Date().toISOString(),
+    };
+
+    mutateMessages((currentMessages: Message[] = []) => [tempMessage, ...currentMessages], false);
+    
+    socket.emit('sendMessage', {
+      matchId: matchId,
+      text: inputText,
+      senderId: currentUser._id, 
+    });
+
+    setInputText("");
+  };
+
+
   const profile = partner?.profile;
-  
   const avatarUri =
     profile?.photos?.[0] ??
     "https://cdn-icons-png.flaticon.com/512/847/847969.png";
-
-  if (isError) {
-    return <ErrorState message="Load dữ liệu không thành công!!!" />;
-  }
-  if (isLoading || !partner) {
-    return <Loading />;
-  }
   
   return (
     <SafeAreaProvider>
@@ -63,7 +91,9 @@ export default function ChatDetail() {
         <KeyboardAvoidingView
           style={styles.container}
           behavior={Platform.OS === "ios" ? "padding" : undefined}
+          keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 0} // (Điều chỉnh nếu cần)
         >
+          {/* Header (giữ nguyên) */}
           <View style={styles.header}>
             <TouchableOpacity onPress={() => router.back()}>
               <Ionicons name="chevron-back" size={26} color="#FF6B9A" />
@@ -76,16 +106,15 @@ export default function ChatDetail() {
 
           <FlatList
             data={messages}
-            
-            keyExtractor={(item) => item._id}
-            renderItem={(root) => (
+            keyExtractor={(item) => item._id! }
+            renderItem={({ item }) => (
               <Messages
-                item={root.item}
-                currentUser={authStore.user as User}
-                partner={partner}
+                item={item}
+                currentUser={currentUser as User}
+                partner={partner!}
               />
             )}
-            inverted
+            inverted 
             contentContainerStyle={{ padding: 10 }}
           />
 
@@ -101,9 +130,7 @@ export default function ChatDetail() {
               style={styles.textInput}
             />
 
-            <TouchableOpacity
-            //  onPress={handleSend}
-             >
+            <TouchableOpacity onPress={handleSend}>
               <Ionicons name="send" size={24} color="#FF6B9A" />
             </TouchableOpacity>
           </View>
@@ -112,8 +139,6 @@ export default function ChatDetail() {
     </SafeAreaProvider>
   );
 };
-
-
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#fff" },
   header: {

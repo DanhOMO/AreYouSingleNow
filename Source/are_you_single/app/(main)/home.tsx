@@ -15,7 +15,7 @@ import {
 import Swiper from "react-native-deck-swiper";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 
-import { useUserSuggestions } from "@hooks/useApi";
+import { useUserSuggestions, useHandleLike, useHandleDisLike } from "@hooks/useApi";
 import type { User } from "src/types/User";
 import api from "src/lib/api";
 import Loading from "@components/Loading";
@@ -25,22 +25,44 @@ const Home = () => {
   const swipeDirection = useRef(new Animated.Value(0)).current;
   const swiperRef = useRef<Swiper<User>>(null);
 
-  const { suggestions, isLoading, isError } = useUserSuggestions();
+  const { suggestions, isLoading, isError , mutateSuggestions} = useUserSuggestions();
+  const { triggerLike, isMutating: isLiking } = useHandleLike();
+  const { triggerDisLike, isMutating: isDisliking  } = useHandleDisLike();
 
-  const handleLike = (cardIndex: number) => {
+  const handleLike = async (cardIndex: number) => {
     const user = suggestions?.[cardIndex];
     if (!user) return;
 
-    console.log("LIKE user:", user._id);
-    api.post("/swipes/like", { targetUserId: user._id });
+    
+    console.log("Like:", user.profile.name);
+    try {
+        
+        const result = await triggerLike({ targetUserId: user._id });
+
+        if (result.success) {
+          mutateSuggestions(); 
+        }
+
+      } catch (e) {
+        console.error("Lỗi khi dislike:", e);
+      }
+
   };
 
-  const handleDislike = (cardIndex: number) => {
+  const handleDislike = async (cardIndex: number) => {
     const user = suggestions?.[cardIndex];
     if (!user) return;
 
     console.log("DISLIKE user:", user._id);
-    api.post("/swipes/dislike", { targetUserId: user._id });
+    try{
+      const result =  await triggerDisLike({ targetUserId: user._id })
+      if (result.success) {
+          mutateSuggestions()
+          }
+          } catch (e) {
+              console.error("Lỗi khi like:", e);
+                ; 
+    }
   };
 
   if (isLoading) {

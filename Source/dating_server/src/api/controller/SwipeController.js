@@ -1,4 +1,5 @@
 const Swipe = require("../../model/Swipe");
+const User = require("../../model/User");
 
 exports.likeUser = async (req, res) => {
   try {
@@ -72,11 +73,12 @@ exports.getLikedYou = async (req, res) => {
 
     const likedUsers = swipes.map((s) => s.swiperId);
 
-    res.status(200).json({
-      success: true,
-      count: likedUsers.length,
-      likedUsers,
-    });
+    if (likedUsers.length === 0) {
+      console.log("Không có ai thích bạn");
+      return res.status(200).json([]);
+    }
+
+    res.status(200).json(likedUsers);
   } catch (error) {
     console.error("❌ Lỗi khi lấy danh sách LikedYou:", error);
     res
