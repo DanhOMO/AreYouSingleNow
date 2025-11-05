@@ -18,7 +18,6 @@ const Box = ({ item }: BoxProps) => {
   const {message} = chatDetail(item.lastMessageId || "");
   const router = useRouter();
   const profile = partner?.profile;
-  console.log("Message", message);
 const avatarUri =
   profile?.photos?.[0] ??
   "https://cdn-icons-png.flaticon.com/512/847/847969.png";
