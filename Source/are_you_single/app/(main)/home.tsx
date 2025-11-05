@@ -15,38 +15,41 @@ import {
 import Swiper from "react-native-deck-swiper";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 
-import { useUserSuggestions, useHandleLike, useHandleDisLike } from "@hooks/useApi";
+import {
+  useUserSuggestions,
+  useHandleLike,
+  useHandleDisLike,
+} from "@hooks/useApi";
 import type { User } from "src/types/User";
 import api from "src/lib/api";
 import Loading from "@components/Loading";
 import SwipeCard from "@components/SwipeCard";
+import { useFilterStore } from "@store/useAuthStore";
 const Home = () => {
   const [index, setIndex] = useState(0);
   const swipeDirection = useRef(new Animated.Value(0)).current;
   const swiperRef = useRef<Swiper<User>>(null);
+  const filter = useFilterStore((state) => state);
 
-  const { suggestions, isLoading, isError , mutateSuggestions} = useUserSuggestions();
+  const { suggestions, isLoading, isError, mutateSuggestions } =
+    useUserSuggestions();
   const { triggerLike, isMutating: isLiking } = useHandleLike();
-  const { triggerDisLike, isMutating: isDisliking  } = useHandleDisLike();
+  const { triggerDisLike, isMutating: isDisliking } = useHandleDisLike();
 
   const handleLike = async (cardIndex: number) => {
     const user = suggestions?.[cardIndex];
     if (!user) return;
 
-    
     console.log("Like:", user.profile.name);
     try {
-        
-        const result = await triggerLike({ targetUserId: user._id });
+      const result = await triggerLike({ targetUserId: user._id });
 
-        if (result.success) {
-          mutateSuggestions(); 
-        }
-
-      } catch (e) {
-        console.error("Lỗi khi dislike:", e);
+      if (result.success) {
+        mutateSuggestions();
       }
-
+    } catch (e) {
+      console.error("Lỗi khi dislike:", e);
+    }
   };
 
   const handleDislike = async (cardIndex: number) => {
@@ -54,16 +57,37 @@ const Home = () => {
     if (!user) return;
 
     console.log("DISLIKE user:", user._id);
-    try{
-      const result =  await triggerDisLike({ targetUserId: user._id })
+    try {
+      const result = await triggerDisLike({ targetUserId: user._id });
       if (result.success) {
-          mutateSuggestions()
-          }
-          } catch (e) {
-              console.error("Lỗi khi like:", e);
-                ; 
+        mutateSuggestions();
+      }
+    } catch (e) {
+      console.error("Lỗi khi like:", e);
     }
   };
+
+  const filteredSuggestions =
+    suggestions?.filter((user) => {
+      if (!user || !user.profile) return false;
+
+      const { gender, minAge, maxAge } = filter;
+
+      if (gender && user.profile.gender !== gender) return false;
+
+      if (minAge || maxAge) {
+        const dob = new Date(user.profile.dob);
+        const age = new Date().getFullYear() - dob.getFullYear();
+        if (minAge && age < minAge) return false;
+        if (maxAge && age > maxAge) return false;
+      }
+
+      return true;
+    }) || [];
+
+  const uniqueSuggestions = filteredSuggestions.filter(
+    (user, idx, self) => idx === self.findIndex((u) => u._id === user._id)
+  );
 
   if (isLoading) {
     return <Loading />;
@@ -87,10 +111,11 @@ const Home = () => {
             <View style={style.cardContainer}>
               <Swiper
                 ref={swiperRef}
-                cards={suggestions || []}
+                cards={filteredSuggestions || []}
                 cardIndex={index}
                 renderCard={(user: User) => (
                   <SwipeCard
+                    key={user._id}
                     user={user}
                     onLike={() => handleLike(index)}
                     onDislike={() => handleDislike(index)}
@@ -98,14 +123,13 @@ const Home = () => {
                 )}
                 stackSize={2}
                 backgroundColor={"transparent"}
-                onSwiped={() => swipeDirection.setValue(0)}
+                onSwiped={(i) => setIndex(i)}
                 onSwiping={(x) => swipeDirection.setValue(x)}
                 onSwipedAll={() => console.log("Hết rồi!!")}
                 verticalSwipe={false}
                 animateCardOpacity
                 onSwipedLeft={(i) => handleDislike(i)}
                 onSwipedRight={(i) => handleLike(i)}
-                infinite
                 disableBottomSwipe
                 disableTopSwipe
                 stackSeparation={2}
@@ -158,7 +182,7 @@ const Home = () => {
             <Text style={[style.labelText, { color: "black" }]}>✓</Text>
           </Animated.View>
         </View>
-{/* 
+        {/* 
         <View style={style.buttonNav}>
           <TouchableOpacity
             style={style.button}

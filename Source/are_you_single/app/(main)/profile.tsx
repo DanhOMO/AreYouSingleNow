@@ -11,22 +11,21 @@ import {
 } from "react-native";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 import { useAuthStore } from "@store/useAuthStore";
- const userDetail = {
-    _id: "68f5ce17dc99208742f2f11f",
-    profile: {
-      name: "Alice Nguyen",
-      gender: "female",
-      photos: [
-        "https://cdn-icons-png.flaticon.com/512/847/847969.png"
-      ],
-      aboutMe: "Yêu thích du lịch và đọc sách.",
-    },
-    detail: {
-      height: 160.5,
-      interested: ["Du lịch", "Âm nhạc"],
-      education: "University of Economics",
-    },
-  };
+import { router } from "expo-router";
+const userDetail = {
+  _id: "68f5ce17dc99208742f2f11f",
+  profile: {
+    name: "Alice Nguyen",
+    gender: "female",
+    photos: ["https://cdn-icons-png.flaticon.com/512/847/847969.png"],
+    aboutMe: "Yêu thích du lịch và đọc sách.",
+  },
+  detail: {
+    height: 160.5,
+    interested: ["Du lịch", "Âm nhạc"],
+    education: "University of Economics",
+  },
+};
 
 const Profile = () => {
   const authStore = useAuthStore();
@@ -34,13 +33,18 @@ const Profile = () => {
   return (
     <SafeAreaProvider>
       <SafeAreaView style={styles.container}>
-        
         <ScrollView contentContainerStyle={styles.scrollContainer}>
           <View style={styles.card}>
-            <Image source={{ uri: user.profile.photos[0] }} style={styles.avatar} />
+            <Image
+              source={{ uri: user.profile.photos[0] }}
+              style={styles.avatar}
+            />
             <View style={styles.infoContainer}>
               <Text style={styles.name}>{user.profile.name}</Text>
-              <TouchableOpacity style={styles.editButton}>
+              <TouchableOpacity
+                style={styles.editButton}
+                onPress={() => router.push("/(main)/update-profile")}
+              >
                 <Text style={styles.editText}>Chỉnh sửa</Text>
               </TouchableOpacity>
             </View>

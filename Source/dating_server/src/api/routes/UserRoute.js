@@ -5,11 +5,9 @@ const { authMiddleware } = require("../middleware/AuthMiddleware");
 const {
   getSuggestions,
   getWhoLikeMe,
+  updateProfile,
 } = require("../controller/UserController");
 
-// =========================
-// 📍 GET all users
-// =========================
 router.get("/", async (req, res) => {
   try {
     const users = await User.find();
@@ -53,23 +51,6 @@ router.post("/", async (req, res) => {
 });
 
 // =========================
-// 📍 UPDATE a user by ID
-// =========================
-router.put("/:id", async (req, res) => {
-  try {
-    const updatedUser = await User.findByIdAndUpdate(req.params.id, req.body, {
-      new: true,
-      runValidators: true,
-    });
-    if (!updatedUser)
-      return res.status(404).json({ message: "User not found" });
-    res.status(200).json(updatedUser);
-  } catch (error) {
-    res.status(400).json({ message: error.message });
-  }
-});
-
-// =========================
 // 📍 DELETE a user by ID
 // =========================
 router.delete("/:id", async (req, res) => {
@@ -103,6 +84,22 @@ router.get("/nearby/:longitude/:latitude", async (req, res) => {
     res.status(200).json(users);
   } catch (error) {
     res.status(500).json({ message: error.message });
+  }
+});
+
+router.put("/update-profile", authMiddleware, updateProfile);
+
+router.put("/:id", async (req, res) => {
+  try {
+    const updatedUser = await User.findByIdAndUpdate(req.params.id, req.body, {
+      new: true,
+      runValidators: true,
+    });
+    if (!updatedUser)
+      return res.status(404).json({ message: "User not found" });
+    res.status(200).json(updatedUser);
+  } catch (error) {
+    res.status(400).json({ message: error.message });
   }
 });
 

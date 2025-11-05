@@ -76,3 +76,46 @@ exports.getWhoLikeMe = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
+exports.updateProfile = async (req, res) => {
+  try {
+    const userId = req.user._id; // lấy từ token JWT
+    const {
+      phone,
+      status,
+      profile,
+      photos,
+      aboutMe,
+      location,
+      detail,
+      interested,
+    } = req.body;
+
+    const updatedUser = await User.findByIdAndUpdate(
+      userId,
+      {
+        phone,
+        status,
+        profile,
+        photos,
+        aboutMe,
+        location,
+        detail,
+        interested,
+      },
+      { new: true, runValidators: true }
+    );
+
+    if (!updatedUser) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    res.status(200).json({
+      message: "Profile updated successfully",
+      user: updatedUser,
+    });
+  } catch (error) {
+    console.error("Lỗi updateProfile:", error);
+    res.status(500).json({ message: error.message });
+  }
+};
