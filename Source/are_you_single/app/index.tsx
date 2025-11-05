@@ -1,23 +1,19 @@
-// Tệp: app/index.tsx (File WelcomeScreen của bạn)
-
 import React from "react";
 import { Text, View, StyleSheet, TouchableOpacity, Image } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
 
 export default function WelcomeScreen() {
-  
-
   return (
     <LinearGradient
-      colors={["#FF6B9A", "#FFC0CB", "#E91E63"]}
+      colors={["#FFF5E6", "#F0E0D6"]}
       start={{ x: 0, y: 0 }}
-      end={{ x: 1, y: 1 }}
+      end={{ x: 0, y: 1 }}
       style={styles.container}
     >
       <View style={styles.logoContainer}>
         <Image
-          source={require("@assets/icon/imageHeart_v2.png")}
+          source={require("@assets/icon/imageHeart_v3.png")}
           style={styles.logo}
         />
         <Text style={styles.title}>Are You Single</Text>
@@ -32,7 +28,7 @@ export default function WelcomeScreen() {
           style={{ borderRadius: 25, overflow: "hidden" }}
         >
           <LinearGradient
-            colors={["#FF6B9A", "#FF4F81"]}
+            colors={["#5C3A21", "#7A5C49"]}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 0 }}
             style={styles.buttonSigIn}
@@ -61,7 +57,6 @@ export default function WelcomeScreen() {
   );
 }
 
-// Giữ nguyên styles của bạn
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -81,11 +76,11 @@ const styles = StyleSheet.create({
     fontSize: 32,
     fontWeight: "bold",
     marginTop: 10,
-    color: "#FF4F81",
+    color: "#5C3A21",
   },
   subtitle: {
     fontSize: 16,
-    color: "white",
+    color: "#7A5C49",
     textAlign: "center",
     marginTop: 5,
   },
@@ -101,28 +96,30 @@ const styles = StyleSheet.create({
   buttonSignUp: {
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: "white",
+    backgroundColor: "#FFFFFF",
     padding: 10,
     borderRadius: 25,
-    borderColor: "#FF6B9A",
+    borderColor: "#5C3A21",
     borderWidth: 1,
   },
   buttonText: {
-    color: "#fff",
+    color: "#FFFFFF",
     fontSize: 18,
+    fontWeight: "600",
   },
   buttonTextSignIn: {
-    color: "#FF6B9A",
+    color: "#5C3A21",
     fontSize: 18,
+    fontWeight: "600",
   },
   terms: {
     fontSize: 12,
-    color: "white",
+    color: "#7A5C49",
     textAlign: "center",
   },
   privacy: {
     fontSize: 12,
-    color: "white",
+    color: "#7A5C49",
     textAlign: "center",
     marginBottom: 20,
   },

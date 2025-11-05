@@ -17,14 +17,14 @@ import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { LoginData, loginSchema } from "@lib/validation"; 
+import { LoginData, loginSchema } from "@lib/validation";
 import api from "@lib/api";
 import { useAuthStore } from "@store/useAuthStore";
 
 export default function Login() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
-  
+
   const setToken = useAuthStore((state) => state.setToken);
   const setUser = useAuthStore((state) => state.setUser);
   const {
@@ -38,16 +38,14 @@ export default function Login() {
   const onSubmit = async (data: LoginData) => {
     setIsLoading(true);
     try {
-      
-      const response = await api.post('/auth/login', data);
-      
+      const response = await api.post("/auth/login", data);
+
       const { token, user } = response.data;
-      
+
       await setToken(token);
       setUser(user);
 
       router.replace("/(main)/home");
-
     } catch (error: any) {
       console.error("Lỗi đăng nhập:", error);
       Alert.alert(
@@ -70,10 +68,13 @@ export default function Login() {
         end={{ x: 1, y: 1 }}
         style={styles.container}
       >
-        <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
+        <TouchableOpacity
+          onPress={() => router.back()}
+          style={styles.backButton}
+        >
           <Ionicons name="arrow-back" size={24} color="white" />
         </TouchableOpacity>
-        
+
         <Text style={styles.title}>Welcome Back!</Text>
         <Text style={styles.subtitle}>Sign in to continue</Text>
 
@@ -95,7 +96,9 @@ export default function Login() {
               />
             )}
           />
-          {errors.email && <Text style={styles.errorText}>{errors.email.message}</Text>}
+          {errors.email && (
+            <Text style={styles.errorText}>{errors.email.message}</Text>
+          )}
 
           {/* Password Input */}
           <Controller
@@ -113,7 +116,9 @@ export default function Login() {
               />
             )}
           />
-          {errors.password && <Text style={styles.errorText}>{errors.password.message}</Text>}
+          {errors.password && (
+            <Text style={styles.errorText}>{errors.password.message}</Text>
+          )}
 
           {/* Submit Button */}
           <TouchableOpacity
@@ -138,7 +143,8 @@ export default function Login() {
 
         <TouchableOpacity onPress={() => router.push("/(auth)/register")}>
           <Text style={styles.linkText}>
-            Don't have an account? <Text style={{fontWeight: 'bold'}}>Sign up</Text>
+            Don't have an account?{" "}
+            <Text style={{ fontWeight: "bold" }}>Sign up</Text>
           </Text>
         </TouchableOpacity>
       </LinearGradient>
@@ -155,7 +161,7 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   backButton: {
-    position: 'absolute',
+    position: "absolute",
     top: 60,
     left: 20,
   },
@@ -183,8 +189,8 @@ const styles = StyleSheet.create({
     color: "#333",
   },
   errorText: {
-    color: 'yellow',
-    alignSelf: 'flex-start',
+    color: "yellow",
+    alignSelf: "flex-start",
     marginLeft: 20,
     marginBottom: 10,
     marginTop: -5,
@@ -197,7 +203,7 @@ const styles = StyleSheet.create({
   buttonText: {
     color: "#fff",
     fontSize: 18,
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
   linkText: {
     color: "white",
