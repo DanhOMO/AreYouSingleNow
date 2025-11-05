@@ -1,7 +1,8 @@
 export interface Message {
     _id?: string;
-    senderId: string;
+    senderId: string  ;
     text: string;
     matchId: string;
     createdAt: string;
+    isTemporary?: boolean;
 }

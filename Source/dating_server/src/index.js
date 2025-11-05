@@ -10,6 +10,7 @@ const uploadRoutes = require("./api/routes/UploadRoute");
 const matchRoutes = require("./api/routes/MatchRoute");
 const messageRoutes = require("./api/routes/MessageRoute");
 const swipeRoutes = require("./api/routes/SwipeRoute");
+const initializeSocket = require("./service/socketHandler");
 
 const cors = require("cors");
 connectDB();
@@ -33,19 +34,7 @@ app.use("/api/swipes", swipeRoutes);
 
 const server = http.createServer(app);
 
-const io = new Server(server, {
-  cors: {
-    origin: "*",
-  },
-});
-
-io.on("connection", (socket) => {
-  console.log("🔌 Một client đã kết nối:", socket.id);
-
-  socket.on("disconnect", () => {
-    console.log("❌ Client ngắt kết nối:", socket.id);
-  });
-});
+initializeSocket(server);
 
 const PORT = process.env.PORT || 3000;
 

@@ -1,5 +1,7 @@
 const User = require("../../model/User");
 const Swipe = require("../../model/Swipe");
+const Match = require("../../model/Match");
+
 exports.getSuggestions = async (req, res) => {
   try {
     const loggedInUserId = req.user.id;
@@ -9,7 +11,6 @@ exports.getSuggestions = async (req, res) => {
     });
 
     const interactedUserIds = new Set();
-
     relatedSwipes.forEach((swipe) => {
       if (swipe.swiperId.toString() !== loggedInUserId) {
         interactedUserIds.add(swipe.swiperId.toString());
@@ -19,7 +20,24 @@ exports.getSuggestions = async (req, res) => {
       }
     });
 
-    const excludedIds = [loggedInUserId, ...interactedUserIds];
+    const matches = await Match.find({
+      userIds: loggedInUserId,
+    });
+
+    const matchedUserIds = new Set();
+    matches.forEach((match) => {
+      match.userIds.forEach((id) => {
+        if (id.toString() !== loggedInUserId) {
+          matchedUserIds.add(id.toString());
+        }
+      });
+    });
+
+    const excludedIds = [
+      loggedInUserId,
+      ...interactedUserIds,
+      ...matchedUserIds,
+    ];
 
     const users = await User.find({
       _id: { $nin: excludedIds },

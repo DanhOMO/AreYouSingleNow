@@ -13,6 +13,7 @@ import { useAuthStore } from "@store/useAuthStore";
 import { useRouter } from "expo-router";
 import { User } from "src/types/User";
 import { LinearGradient } from "expo-linear-gradient";
+import {  usePartnerByMatchId } from "@hooks/useApi";
 
 
 type PopulatedMatch = {
@@ -33,15 +34,12 @@ export default function MatchSuccess({
 }: MatchSuccessProps) {
   const router = useRouter();
   
-  
   const currentUser = useAuthStore((state) => state.user);
-
+  const  {partner} = usePartnerByMatchId(match?._id || "");
+  
   if (!isVisible || !match || !currentUser) return null;
 
-  
-  const partner = match.userIds.find((u) => u._id !== currentUser._id);
-
-  if (!partner) return null; 
+  if (!partner) return null;
 
   
   const currentUserAvatar =
@@ -78,7 +76,6 @@ export default function MatchSuccess({
             />
           </View>
 
-          {/* Nút Gửi tin nhắn [cite: 710] */}
           <TouchableOpacity onPress={handleSendMessage}>
             <LinearGradient
               colors={["#FF6B9A", "#FF4F81"]}
@@ -90,7 +87,6 @@ export default function MatchSuccess({
             </LinearGradient>
           </TouchableOpacity>
 
-          {/* Nút Tiếp tục quẹt [cite: 708] */}
           <TouchableOpacity style={styles.buttonClose} onPress={onClose}>
             <Text style={styles.buttonCloseText}>Tiếp tục quẹt</Text>
           </TouchableOpacity>

@@ -194,7 +194,7 @@ export function useCreateMatch() {
     string,              
     CreateMatchArgs      
   >(
-    '/api/matches/manual', 
+    '/matches/create-match', 
     mutator                
   );
 

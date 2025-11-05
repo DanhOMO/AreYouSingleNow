@@ -97,28 +97,3 @@ exports.manualMatch = async (req, res) => {
     res.status(500).json({ success: false, message: error.message });
   }
 };
-exports.rejectMatch = async (req, res) => {
-  try {
-    const loggedInUserId = req.user._id;
-    const { targetUserId } = req.body;
-
-    const deletedSwipe = await Swipe.findOneAndDelete({
-      userId: targetUserId, // thằng like thằng login
-      targetId: loggedInUserId, // thằng login user bị like
-    });
-
-    if (!deletedSwipe) {
-      return res.status(404).json({
-        success: false,
-        message: "Không tìm thấy lượt thích để xóa",
-      });
-    }
-
-    res.status(200).json({
-      success: true,
-      message: "Đã từ chối và xóa lượt thích thành công ❌",
-    });
-  } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
-  }
-};

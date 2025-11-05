@@ -14,7 +14,6 @@ exports.likeUser = async (req, res) => {
       return res.status(400).json({ message: "Bạn đã vuốt người này rồi." });
     }
 
-    // Tạo mới bản ghi swipe
     const swipe = await Swipe.create({
       swiperId,
       targetId: targetUserId,
