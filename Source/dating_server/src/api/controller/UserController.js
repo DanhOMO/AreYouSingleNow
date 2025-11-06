@@ -90,21 +90,18 @@ exports.getWhoLikeMe = async (req, res) => {
 
     if (profile) {
       if (!user.profile) {
-        user.profile = {}; // <-- KHỞI TẠO OBJECT
+        user.profile = {}; 
       }
       user.profile.name = profile.name || user.profile.name;
       user.profile.gender = profile.gender || user.profile.gender;
       user.profile.aboutMe = profile.aboutMe || user.profile.aboutMe;
       user.profile.dob = profile.dob || user.profile.dob;
       
-      // SỬA LỖI 2: Thêm 'photos' (bạn đã quên)
-      user.profile.photos = profile.photos || user.profile.photos;
     }
 
-    // SỬA LỖI 1: Khởi tạo 'detail' nếu nó chưa tồn tại
     if (detail) {
       if (!user.detail) {
-        user.detail = {}; // <-- KHỞI TẠO OBJECT
+        user.detail = {}; 
       }
       user.detail.height = detail.height || user.detail.height;
       user.detail.education = detail.education || user.detail.education;
@@ -115,7 +112,7 @@ exports.getWhoLikeMe = async (req, res) => {
     console.log("luu thanh cong");
     res.status(200).json(user);
   } catch (err) {
-    console.error("Lỗi khi cập nhật profile:", err); // Thêm log lỗi
+    console.error("Lỗi khi cập nhật profile:", err); 
     res
       .status(500)
       .json({ msg: "Lỗi server khi cập nhật profile", error: err.message });
