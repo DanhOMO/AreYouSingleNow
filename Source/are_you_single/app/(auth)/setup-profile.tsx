@@ -1,3 +1,5 @@
+// Tệp: app/(auth)/setup-profile.tsx
+
 import React, { useState } from "react";
 import {
   View,
@@ -11,36 +13,31 @@ import {
   KeyboardAvoidingView,
   Platform,
   Switch,
-  ActivityIndicator, 
+  ActivityIndicator,
 } from "react-native";
 import { useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { useAuthStore } from "@store/useAuthStore";
-
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
   updateProfileSchema,
   UpdateProfileData,
 } from "src/lib/validation"; 
-
 import {
   uploadAvatar,
   uploadPhoto,
   deletePhoto,
   updateProfile,
 } from "@lib/api"; 
-import { pickImageFromLibrary } from "src/services/imagePicker"; 
+import { pickImageFromLibrary } from "src/services/imagePicker";
 
 const interestsList = ["music", "travel", "coffee", "books", "movie"];
 
-const UpdateProfile = () => {
+export default function SetupProfile() {
   const router = useRouter();
-  const authStore = useAuthStore();
-  const user = authStore.user;
-  const initialGender: "female" | "male" =
-    user?.profile?.gender === "male" ? "male" : "female";
+  const authStore = useAuthStore(); // Chỉ dùng để clearAuth
 
   const {
     control,
@@ -51,17 +48,9 @@ const UpdateProfile = () => {
   } = useForm<UpdateProfileData>({
     resolver: zodResolver(updateProfileSchema) as any,
     defaultValues: {
-      phone: user?.phone || "",
-      status: user?.status || false,
-      name: user?.profile?.name || "",
-      gender: initialGender,
-      aboutMe: user?.profile?.aboutMe || "",
-      education: user?.detail?.education || "",
-      height: user?.detail?.height?.toString() || "",
-      interested: user?.detail?.interested || [],
-      photos: user?.profile?.photos || [],
-      dob: user?.profile?.dob ? new Date(user.profile.dob) : null,
-      location: user?.location || { type: "Point", coordinates: [0, 0] },
+      photos: [],
+      interested: [],
+      gender: "female",
     },
   });
 
@@ -76,15 +65,15 @@ const UpdateProfile = () => {
   
   const handleSelectAvatar = async () => {
     if (isUploading) return;
-    const uri = await pickImageFromLibrary(); // Lấy ảnh từ service
+    const uri = await pickImageFromLibrary();
     if (!uri) return;
 
     setIsUploading(true);
     try {
-      // Gọi hàm 'uploadAvatar' từ 'api.ts'
+        console.log("bat dau up anh");
       const updatedUser = await uploadAvatar(uri); 
       authStore.setUser(updatedUser);
-      setValue("photos", updatedUser.profile.photos); // Cập nhật form
+      setValue("photos", updatedUser.profile.photos); 
       Alert.alert("Thành công", "Cập nhật ảnh đại diện thành công!");
     } catch (error) {
       console.error("Lỗi upload avatar:", error);
@@ -96,7 +85,7 @@ const UpdateProfile = () => {
 
   const handleAddMoreImage = async () => {
     if(photos== null) return;
-    if (photos.length >= 6) { // (Giới hạn 6 ảnh từ HEAD)
+    if (photos.length >= 6) { 
       Alert.alert("Thông báo", "Bạn đã đạt số lượng ảnh tối đa (6 ảnh).");
       return;
     }
@@ -107,9 +96,10 @@ const UpdateProfile = () => {
 
     setIsUploading(true);
     try {
+      // Gọi hàm 'uploadPhoto' từ 'api.ts'
       const updatedUser = await uploadPhoto(uri);
       authStore.setUser(updatedUser);
-      setValue("photos", updatedUser.profile.photos); 
+      setValue("photos", updatedUser.profile.photos); // Cập nhật form
       Alert.alert("Thành công", "Đã thêm ảnh mới!");
     } catch (error)
     {
@@ -149,6 +139,7 @@ const UpdateProfile = () => {
     setValue("interested", newSelected, { shouldValidate: true }); 
   };
 
+  // === HÀM ONSUBMIT ĐÃ SỬA LẠI LUỒNG (THEO YÊU CẦU) ===
   const onSubmit = async (data: UpdateProfileData) => {
     if (isSaving) return;
     setIsSaving(true);
@@ -161,7 +152,7 @@ const UpdateProfile = () => {
           gender: data.gender,
           aboutMe: data.aboutMe,
           dob: data.dob,
-          photos: data.photos, 
+          photos: data.photos, // (Các hàm upload đã cập nhật 'photos')
         },
         detail: {
           height: parseFloat(data.height || "0") || 0,
@@ -171,21 +162,30 @@ const UpdateProfile = () => {
         location: data.location,
       };
 
-      const updatedUser = await updateProfile(body);
+      // 1. Gọi API updateProfile (vẫn cần token đang có)
+      await updateProfile(body);
 
-      authStore.setUser(updatedUser);
-      Alert.alert("Thành công", "Cập nhật hồ sơ thành công!");
-      router.back();
+      // 2. ĐĂNG XUẤT (như bạn yêu cầu)
+      await authStore.clearAuth(); 
+
+      Alert.alert(
+        "Hoàn tất!",
+        "Hồ sơ của bạn đã được lưu. Vui lòng đăng nhập để bắt đầu."
+      );
+      
+      // 3. CHUYỂN VỀ LOGIN (như bạn yêu cầu)
+      router.replace("/(auth)/login");
+
     } catch (err) {
       console.error(err);
-      Alert.alert("Lỗi", "Không thể kết nối đến server");
+      Alert.alert("Lỗi", "Không thể lưu hồ sơ, vui lòng thử lại.");
     } finally {
       setIsSaving(false);
     }
   };
-
-  if(photos == null) return null;
-  if(interested == null) return null;
+  
+  if (photos == null) return null;
+  if (interested == null) return null;
 
   return (
     <SafeAreaView style={styles.container} edges={["left", "right", "bottom"]}>
@@ -195,10 +195,12 @@ const UpdateProfile = () => {
       >
         <ScrollView
           showsVerticalScrollIndicator={false}
-          contentContainerStyle={{ paddingBottom: 110 }} // (Dùng padding 'HEAD')
+          contentContainerStyle={{ paddingBottom: 110 }}
         >
-          <Text style={styles.header}>Chỉnh sửa hồ sơ</Text>
+          <Text style={styles.header}>Thiết lập Hồ sơ</Text>
+          <Text style={styles.subtitle}>Điền các thông tin cơ bản để bắt đầu</Text>
 
+          {/* Avatar */}
           <TouchableOpacity
             style={styles.avatarContainer}
             onPress={handleSelectAvatar}
@@ -206,22 +208,25 @@ const UpdateProfile = () => {
           >
             <Image
               source={
-                photos[0] 
+                photos[0]
                   ? { uri: photos[0] }
-                  : require("src/assets/icon/imageHeart.png") // (Sửa lại default)
+                  : require("src/assets/icon/imageHeart.png") // (Ảnh default)
               }
               style={styles.avatar}
             />
             {isUploading && (
               <ActivityIndicator
-                style={styles.avatarLoading} // (Thêm style này)
+                style={styles.avatarLoading}
                 size="large"
-                color="#FF6B9A" // (Dùng màu 'main')
+                color="#FF6B9A"
               />
             )}
-            <Text style={styles.changePhotoText}>Thay đổi ảnh đại diện</Text>
+            <Text style={styles.changePhotoText}>Chọn ảnh đại diện</Text>
           </TouchableOpacity>
+          {/* Lỗi cho Avatar (nếu yêu cầu) */}
+          {errors.photos && <Text style={styles.errorText}>{errors.photos.message}</Text>}
 
+          {/* Ảnh phụ */}
           <Text style={styles.label}>Ảnh bổ sung (Tối đa 5)</Text>
           <View style={styles.extraPhotosContainer}>
             {photos.slice(1).map((uri, index) => (
@@ -238,37 +243,39 @@ const UpdateProfile = () => {
                 </TouchableOpacity>
               </View>
             ))}
-            {photos.length < 6 && ( // (Dùng logic 6 ảnh của HEAD)
+            {photos.length < 6 && (
               <TouchableOpacity
                 style={styles.addPhotoButton}
                 onPress={handleAddMoreImage}
                 disabled={isUploading}
               >
                 {isUploading ? (
-                  <ActivityIndicator color="#FF6B9A" /> // (Dùng màu 'main')
+                  <ActivityIndicator color="#FF6B9A" />
                 ) : (
-                  <Text style={{ fontSize: 24, color: "#FF6B9A" }}>＋</Text> // (Dùng màu 'main')
+                  <Text style={{ fontSize: 24, color: "#FF6B9A" }}>＋</Text>
                 )}
               </TouchableOpacity>
             )}
           </View>
 
-          <Text style={styles.label}>Số điện thoại</Text>
+          {/* Tên */}
+          <Text style={styles.label}>Tên</Text>
           <Controller
             control={control}
-            name="phone"
+            name="name"
             render={({ field: { onChange, onBlur, value } }) => (
               <TextInput
                 style={styles.input}
                 onBlur={onBlur}
                 onChangeText={onChange}
                 value={value}
-                keyboardType="phone-pad"
+                placeholder="Tên của bạn"
               />
             )}
           />
-          {errors.phone && <Text style={styles.errorText}>{errors.phone.message}</Text>}
+          {errors.name && <Text style={styles.errorText}>{errors.name.message}</Text>}
 
+          {/* Ngày sinh */}
           <Text style={styles.label}>Ngày sinh</Text>
           <Controller
             control={control}
@@ -285,7 +292,7 @@ const UpdateProfile = () => {
                 </TouchableOpacity>
                 {showDatePicker && (
                   <DateTimePicker
-                    value={value ? new Date(value) : new Date()}
+                    value={value || new Date()}
                     mode="date"
                     display="default"
                     onChange={(event, date) => {
@@ -299,52 +306,17 @@ const UpdateProfile = () => {
           />
           {errors.dob && <Text style={styles.errorText}>{errors.dob.message}</Text>}
 
-          <Text style={styles.label}>Trạng thái</Text>
-          <Controller
-            control={control}
-            name="status"
-            render={({ field: { onChange, value } }) => (
-              <Switch value={value} onValueChange={onChange} />
-            )}
-          />
-          {errors.status && <Text style={styles.errorText}>{errors.status.message}</Text>}
-
-          <Text style={styles.label}>Tọa độ hiện tại</Text>
-          <Controller
-            control={control}
-            name="location"
-            render={({ field: { value } }) => (
-              <Text style={{ marginBottom: 10, color: '#555' }}>
-                Lat: {value?.coordinates[1]}, Lng: {value?.coordinates[0]}
-              </Text>
-            )}
-          />
-
-          <Text style={styles.label}>Tên</Text>
-          <Controller
-            control={control}
-            name="name"
-            render={({ field: { onChange, onBlur, value } }) => (
-              <TextInput
-                style={styles.input}
-                onBlur={onBlur}
-                onChangeText={onChange}
-                value={value}
-              />
-            )}
-          />
-          {errors.name && <Text style={styles.errorText}>{errors.name.message}</Text>}
-
+          {/* Giới tính */}
           <Text style={styles.label}>Giới tính</Text>
           <View style={styles.genderContainer}>
-            {( ["female", "male"] as const).map((g: "female" | "male") => (
+            {(["female", "male"] as const).map((g) => (
               <TouchableOpacity
                 key={g}
                 style={[
                   styles.genderButton,
-                  gender === g && styles.genderActive, // Dùng `gender` từ `watch()`
+                  gender === g && styles.genderActive,
                 ]}
-                onPress={() => setValue("gender", g)} // Dùng `setValue`
+                onPress={() => setValue("gender", g)}
               >
                 <Text
                   style={[
@@ -358,6 +330,67 @@ const UpdateProfile = () => {
             ))}
           </View>
           {errors.gender && <Text style={styles.errorText}>{errors.gender.message}</Text>}
+          
+          {/* Giới thiệu */}
+          <Text style={styles.label}>Giới thiệu</Text>
+          <Controller
+            control={control}
+            name="aboutMe"
+            render={({ field: { onChange, onBlur, value } }) => (
+              <TextInput
+                style={[styles.input, { height: 100 }]}
+                multiline
+                onBlur={onBlur}
+                onChangeText={onChange}
+                value={value}
+                placeholder="Một chút về bạn..."
+              />
+            )}
+          />
+          {errors.aboutMe && <Text style={styles.errorText}>{errors.aboutMe.message}</Text>}
+          
+          {/* Sở thích */}
+          <Text style={styles.label}>Sở thích</Text>
+          <View style={styles.interestContainer}>
+            {interestsList.map((item) => (
+              <TouchableOpacity
+                key={item}
+                style={[
+                  styles.interestButton,
+                  interested.includes(item) && styles.interestActive,
+                ]}
+                onPress={() => handleToggleInterest(item)}
+              >
+                <Text
+                  style={[
+                    styles.interestText,
+                    interested.includes(item) &&
+                      styles.interestTextActive,
+                  ]}
+                >
+                  {item}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+          {errors.interested && <Text style={styles.errorText}>{errors.interested.message}</Text>}
+
+          {/* Các trường phụ (SĐT, Học vấn, Chiều cao) */}
+          <Text style={styles.label}>Số điện thoại</Text>
+          <Controller
+            control={control}
+            name="phone"
+            render={({ field: { onChange, onBlur, value } }) => (
+              <TextInput
+                style={styles.input}
+                onBlur={onBlur}
+                onChangeText={onChange}
+                value={value}
+                keyboardType="phone-pad"
+              />
+            )}
+          />
+          {errors.phone && <Text style={styles.errorText}>{errors.phone.message}</Text>}
 
           <Text style={styles.label}>Chiều cao (cm)</Text>
           <Controller
@@ -390,75 +423,24 @@ const UpdateProfile = () => {
           />
           {errors.education && <Text style={styles.errorText}>{errors.education.message}</Text>}
 
-          <Text style={styles.label}>Giới thiệu</Text>
-          <Controller
-            control={control}
-            name="aboutMe"
-            render={({ field: { onChange, onBlur, value } }) => (
-              <TextInput
-                style={[styles.input, { height: 100 }]}
-                multiline
-                onBlur={onBlur}
-                onChangeText={onChange}
-                value={value}
-              />
-            )}
-          />
-          {errors.aboutMe && <Text style={styles.errorText}>{errors.aboutMe.message}</Text>}
-
-          <Text style={styles.label}>Sở thích</Text>
-          <View style={styles.interestContainer}>
-            {interestsList.map((item) => (
-              <TouchableOpacity
-                key={item}
-                style={[
-                  styles.interestButton,
-                  interested.includes(item) && styles.interestActive,
-                ]}
-                onPress={() => handleToggleInterest(item)}
-              >
-                <Text
-                  style={[
-                    styles.interestText,
-                    interested.includes(item) &&
-                      styles.interestTextActive,
-                  ]}
-                >
-                  {item}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </View>
-          {errors.interested && <Text style={styles.errorText}>{errors.interested.message}</Text>}
-
           <TouchableOpacity
             style={styles.saveButton}
-            onPress={handleSubmit(onSubmit)} 
+            onPress={handleSubmit(onSubmit)}
             disabled={isSaving}
           >
             {isSaving ? (
               <ActivityIndicator color="#fff" />
             ) : (
-              <Text style={styles.saveText}>Lưu thay đổi</Text>
+              <Text style={styles.saveText}>Lưu và Hoàn tất</Text>
             )}
           </TouchableOpacity>
           
-          {/* Nút Back (từ 'main') */}
-          <TouchableOpacity
-            style={styles.backButton}
-            onPress={() => router.back()}
-          >
-            <Text style={styles.backText}>Quay lại</Text>
-          </TouchableOpacity>
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
 };
 
-export default UpdateProfile;
-
-// --- STYLES: (Lấy từ 'main' - Giao diện mới) ---
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#FAFAFA", padding: 20 },
   header: {
@@ -604,4 +586,10 @@ const styles = StyleSheet.create({
     marginTop: 4,
     marginLeft: 8,
   },
+  subtitle: {
+    fontSize: 14,
+    color: "#555",
+    textAlign: "center",
+    
+  }
 });

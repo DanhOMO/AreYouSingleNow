@@ -17,7 +17,7 @@ const handleUpload = async (req) => {
 const uploadAvatar = async (req, res) => {
   try {
     const cloudinaryUrl = await handleUpload(req);
-
+    console.log("Truy cap thanh cong");
     const updatedUser = await User.findByIdAndUpdate(
       req.user.id,
       { $set: { "profile.photos.0": cloudinaryUrl } },
