@@ -25,7 +25,7 @@ import { User } from "src/types/User";
 import { Message } from "src/types/Message";
 import { useSocket } from "@hooks/useSocket";
 
-// Lấy kiểu NewMessage (từ logic 'main')
+
 type NewMessage = Message & { tempId?: string } & { isTemporary: boolean };
 
 export default function ChatDetail() {
@@ -48,6 +48,7 @@ export default function ChatDetail() {
           const tempMessageIndex = currentMessages.findIndex(
             (m) =>
               (m as any).isTemporary === true && // Dùng (m as any) cho an toàn
+
               m.senderId === newMessage.senderId &&
               m.text === newMessage.text
           );
@@ -92,10 +93,9 @@ export default function ChatDetail() {
       isTemporary: true,
     };
 
-    // Sửa: Chỉ gọi mutate MỘT LẦN
     mutateMessages((currentMessages: Message[] = []) => {
       if (!currentMessages) currentMessages = [];
-      return [tempMessage, ...currentMessages]; // Sửa: Thêm vào đầu
+      return [...currentMessages, tempMessage];
     }, false);
 
     socket.emit("sendMessage", {
@@ -158,7 +158,6 @@ export default function ChatDetail() {
             </TouchableOpacity>
           </View>
 
-          {/* FlatList (UI 'main' + 'inverted' của 'HEAD') */}
           <View style={styles.flatList}>
             <FlatList
               style={styles.listContainer}
@@ -178,7 +177,6 @@ export default function ChatDetail() {
             />
           </View>
 
-          {/* Input Bar (UI 'main') */}
           <View style={styles.inputContainer}>
             <TouchableOpacity>
               <Ionicons name="image-outline" size={24} color="#FF6B9A" />
@@ -239,7 +237,6 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     color: "#FF6B9A",
   },
-  // Thêm style cho nút video (từ 'HEAD')
   videoButton: {
     paddingLeft: 10,
   },
@@ -247,7 +244,6 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#fff",
   },
-  // Sửa lỗi layout
   flatList: {
     flex: 1, // Thay vì height: "75%"
   },
