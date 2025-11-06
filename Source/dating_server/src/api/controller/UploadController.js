@@ -17,12 +17,24 @@ const handleUpload = async (req) => {
 const uploadAvatar = async (req, res) => {
   try {
     const cloudinaryUrl = await handleUpload(req);
-    console.log("Truy cap thanh cong");
-    const updatedUser = await User.findByIdAndUpdate(
-      req.user.id,
-      { $set: { "profile.photos.0": cloudinaryUrl } },
-      { new: true }
-    );
+
+    const user = await User.findById(req.user.id);
+    if (!user) {
+      return res.status(404).json({ msg: "Không tìm thấy người dùng" });
+    }
+
+    if (!user.profile) {
+      user.profile = {};
+    }
+    if (!user.profile.photos || !Array.isArray(user.profile.photos)) {
+      user.profile.photos = [];
+    }
+
+    const currentPhotos = user.profile.photos.slice(1);
+    user.profile.photos = [cloudinaryUrl, ...currentPhotos];
+
+    const updatedUser = await user.save();
+
     res.status(200).json(updatedUser);
   } catch (err) {
     res
@@ -35,6 +47,13 @@ const uploadPhoto = async (req, res) => {
   try {
     const user = await User.findById(req.user.id);
 
+    if (!user.profile) {
+      user.profile = {};
+    }
+    if (!user.profile.photos || !Array.isArray(user.profile.photos)) {
+      user.profile.photos = [];
+    }
+
     if (user.profile.photos.length >= 6) {
       return res
         .status(400)
@@ -44,9 +63,13 @@ const uploadPhoto = async (req, res) => {
     const cloudinaryUrl = await handleUpload(req);
 
     const updatedUser = await User.findByIdAndUpdate(
+
       req.user.id,
+
       { $push: { "profile.photos": cloudinaryUrl } },
+
       { new: true }
+
     );
 
     res.status(200).json(updatedUser);
@@ -75,7 +98,7 @@ const deletePhoto = async (req, res) => {
     const updatedUser = await User.findByIdAndUpdate(
       req.user.id,
       { $pull: { "profile.photos": photoUrl } },
-      { new: true }
+      { new: true, select: "-password" }
     );
 
     res.status(200).json(updatedUser);

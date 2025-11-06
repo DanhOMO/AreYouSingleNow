@@ -1,5 +1,3 @@
-// Tệp: app/(auth)/setup-profile.tsx
-
 import React, { useState } from "react";
 import {
   View,
@@ -35,9 +33,25 @@ import { pickImageFromLibrary } from "src/services/imagePicker";
 
 const interestsList = ["music", "travel", "coffee", "books", "movie"];
 
+const getRandomLatLng = (
+  minLat = -90,
+  maxLat = 90,
+  minLng = -180,
+  maxLng = 180
+): [number, number] => {
+  const lat = Math.random() * (maxLat - minLat) + minLat;
+  const lng = Math.random() * (maxLng - minLng) + minLng;
+  return [lng, lat];
+};
+
+const location: { type: "Point"; coordinates: [number, number] } = {
+  type: "Point",
+  coordinates: getRandomLatLng(),
+};
+
 export default function SetupProfile() {
   const router = useRouter();
-  const authStore = useAuthStore(); // Chỉ dùng để clearAuth
+  const authStore = useAuthStore(); 
 
   const {
     control,
@@ -51,6 +65,14 @@ export default function SetupProfile() {
       photos: [],
       interested: [],
       gender: "female",
+      status: false, 
+      location: location, 
+      phone: "",
+      name: "",
+      aboutMe: "",
+      education: "",
+      height: "",
+      dob: null,
     },
   });
 
@@ -62,7 +84,6 @@ export default function SetupProfile() {
   const [isUploading, setIsUploading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
-  
   const handleSelectAvatar = async () => {
     if (isUploading) return;
     const uri = await pickImageFromLibrary();
@@ -72,8 +93,7 @@ export default function SetupProfile() {
     try {
         console.log("bat dau up anh");
       const updatedUser = await uploadAvatar(uri); 
-      authStore.setUser(updatedUser);
-      setValue("photos", updatedUser.profile.photos); 
+      setValue("photos", updatedUser.profile.photos, { shouldValidate: true }); 
       Alert.alert("Thành công", "Cập nhật ảnh đại diện thành công!");
     } catch (error) {
       console.error("Lỗi upload avatar:", error);
@@ -96,10 +116,8 @@ export default function SetupProfile() {
 
     setIsUploading(true);
     try {
-      // Gọi hàm 'uploadPhoto' từ 'api.ts'
       const updatedUser = await uploadPhoto(uri);
-      authStore.setUser(updatedUser);
-      setValue("photos", updatedUser.profile.photos); // Cập nhật form
+      setValue("photos", updatedUser.profile.photos, { shouldValidate: true });
       Alert.alert("Thành công", "Đã thêm ảnh mới!");
     } catch (error)
     {
@@ -119,8 +137,7 @@ export default function SetupProfile() {
         onPress: async () => {
           try {
             const updatedUser = await deletePhoto(photoUrl);
-            authStore.setUser(updatedUser);
-            setValue("photos", updatedUser.profile.photos); // Cập nhật form
+            setValue("photos", updatedUser.profile.photos, { shouldValidate: true });
             Alert.alert("Thành công", "Đã xóa ảnh.");
           } catch (error) {
             console.error("Lỗi xóa ảnh:", error);
@@ -138,8 +155,7 @@ export default function SetupProfile() {
       : [...interested, item];
     setValue("interested", newSelected, { shouldValidate: true }); 
   };
-
-  // === HÀM ONSUBMIT ĐÃ SỬA LẠI LUỒNG (THEO YÊU CẦU) ===
+  
   const onSubmit = async (data: UpdateProfileData) => {
     if (isSaving) return;
     setIsSaving(true);
@@ -152,7 +168,7 @@ export default function SetupProfile() {
           gender: data.gender,
           aboutMe: data.aboutMe,
           dob: data.dob,
-          photos: data.photos, // (Các hàm upload đã cập nhật 'photos')
+          photos: data.photos,
         },
         detail: {
           height: parseFloat(data.height || "0") || 0,
@@ -161,11 +177,8 @@ export default function SetupProfile() {
         },
         location: data.location,
       };
-
-      // 1. Gọi API updateProfile (vẫn cần token đang có)
+      console.log(body);
       await updateProfile(body);
-
-      // 2. ĐĂNG XUẤT (như bạn yêu cầu)
       await authStore.clearAuth(); 
 
       Alert.alert(
@@ -173,7 +186,6 @@ export default function SetupProfile() {
         "Hồ sơ của bạn đã được lưu. Vui lòng đăng nhập để bắt đầu."
       );
       
-      // 3. CHUYỂN VỀ LOGIN (như bạn yêu cầu)
       router.replace("/(auth)/login");
 
     } catch (err) {
@@ -183,9 +195,12 @@ export default function SetupProfile() {
       setIsSaving(false);
     }
   };
+
   
-  if (photos == null) return null;
-  if (interested == null) return null;
+  
+  if (photos == null || interested == null) {
+     return null;
+  }
 
   return (
     <SafeAreaView style={styles.container} edges={["left", "right", "bottom"]}>
@@ -198,6 +213,8 @@ export default function SetupProfile() {
           contentContainerStyle={{ paddingBottom: 110 }}
         >
           <Text style={styles.header}>Thiết lập Hồ sơ</Text>
+          
+          {/* SỬA LỖI 1: Bọc Text trong <Text> */}
           <Text style={styles.subtitle}>Điền các thông tin cơ bản để bắt đầu</Text>
 
           {/* Avatar */}
@@ -210,7 +227,7 @@ export default function SetupProfile() {
               source={
                 photos[0]
                   ? { uri: photos[0] }
-                  : require("src/assets/icon/imageHeart.png") // (Ảnh default)
+                  : require("src/assets/icon/imageHeart.png") 
               }
               style={styles.avatar}
             />
@@ -223,7 +240,6 @@ export default function SetupProfile() {
             )}
             <Text style={styles.changePhotoText}>Chọn ảnh đại diện</Text>
           </TouchableOpacity>
-          {/* Lỗi cho Avatar (nếu yêu cầu) */}
           {errors.photos && <Text style={styles.errorText}>{errors.photos.message}</Text>}
 
           {/* Ảnh phụ */}
@@ -423,6 +439,7 @@ export default function SetupProfile() {
           />
           {errors.education && <Text style={styles.errorText}>{errors.education.message}</Text>}
 
+         
           <TouchableOpacity
             style={styles.saveButton}
             onPress={handleSubmit(onSubmit)}
@@ -441,6 +458,7 @@ export default function SetupProfile() {
   );
 };
 
+// (Styles giữ nguyên)
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#FAFAFA", padding: 20 },
   header: {
@@ -471,7 +489,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "#E0D4C8",
     marginBottom: 10,
-    marginRight: 10, // Thêm
+    marginRight: 10,
   },
   addPhotoButton: {
     width: 80,
@@ -486,7 +504,7 @@ const styles = StyleSheet.create({
   deletePhotoButton: {
     position: "absolute",
     top: -5,
-    right: 5, // Sửa (thay vì -5)
+    right: 5, 
     backgroundColor: "#FF6B9A",
     width: 20,
     height: 20,
@@ -545,16 +563,8 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     borderRadius: 25,
     marginTop: 25,
-    minHeight: 48, // Thêm
-    justifyContent: 'center', // Thêm
-  },
-  backButton: {
-    backgroundColor: "#FFFFFF",
-    paddingVertical: 12,
-    borderRadius: 25,
-    marginTop: 15,
-    borderWidth: 1,
-    borderColor: "#FF6B9A",
+    minHeight: 48,
+    justifyContent: 'center',
   },
   saveText: {
     color: "#fff",
@@ -562,13 +572,6 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     textAlign: "center",
   },
-  backText: {
-    color: "#FF6B9A",
-    fontSize: 16,
-    fontWeight: "700",
-    textAlign: "center",
-  },
-  // --- Thêm style từ 'HEAD' ---
   avatarLoading: {
     position: "absolute",
     top: 0,
@@ -577,7 +580,7 @@ const styles = StyleSheet.create({
     bottom: 0,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "rgba(250,250,250,0.5)", // (Dùng màu nền 'main')
+    backgroundColor: "rgba(250,250,250,0.5)",
     borderRadius: 60,
   },
   errorText: {
@@ -586,10 +589,10 @@ const styles = StyleSheet.create({
     marginTop: 4,
     marginLeft: 8,
   },
-  subtitle: {
+  subtitle: { // (Style bị thiếu)
     fontSize: 14,
     color: "#555",
     textAlign: "center",
-    
+    marginBottom: 15, // (Thêm)
   }
 });

@@ -5,6 +5,7 @@ import Box from "@components/Box";
 import { useMatches } from "@hooks/useApi";
 import Loading from "@components/Loading";
 import type { Match } from "src/types/Match";
+import { LinearGradient } from "expo-linear-gradient";
 
 const ListMatch = () => {
   const { matches, isLoading, isError } = useMatches();
@@ -21,6 +22,19 @@ const ListMatch = () => {
         </Text>
       </SafeAreaView>
     );
+  }
+ 
+  if (!matches || matches.length === 0) {
+     return (
+        <LinearGradient
+          colors={["#FF6B9A", "#FFC0CB", "#E91E63"]}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={styles.centerScreen}
+        >
+          <Text style={styles.emptyText}>Chưa có cuộc trò chuyện 😢</Text>
+        </LinearGradient>
+      );
   }
 
   return (
@@ -45,5 +59,15 @@ const styles = StyleSheet.create({
   },
   listContent: {
     paddingBottom: 100,
+  },
+  centerScreen: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  emptyText: {
+    fontSize: 16,
+    color: "white",
+    fontStyle: "italic",
   },
 });
