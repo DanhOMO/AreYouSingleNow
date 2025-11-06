@@ -11,7 +11,7 @@ const matchRoutes = require("./api/routes/MatchRoute");
 const messageRoutes = require("./api/routes/MessageRoute");
 const swipeRoutes = require("./api/routes/SwipeRoute");
 const initializeSocket = require("./service/socketHandler");
-
+require("./config/cloudinary");
 const cors = require("cors");
 connectDB();
 

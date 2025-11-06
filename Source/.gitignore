@@ -1,9 +1,10 @@
 # Node modules
 are_you_single/node_modules/
 dating_server/node_modules/
-
+are_you_single/android/
 
 
 # Log files
 *.log
 dating_server/dating-app-drive-storage-b4c955288c63.json
+dating_server/.env

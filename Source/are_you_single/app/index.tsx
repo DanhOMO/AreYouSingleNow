@@ -6,45 +6,45 @@ import { router } from "expo-router";
 export default function WelcomeScreen() {
   return (
     <LinearGradient
-      colors={["#FFF5E6", "#F0E0D6"]}
+      colors={["#FF6B9A", "#FFC0CB", "#E91E63"]} // 🌸 pastel → đậm dần
       start={{ x: 0, y: 0 }}
       end={{ x: 0, y: 1 }}
       style={styles.container}
     >
       <View style={styles.logoContainer}>
         <Image
-          source={require("@assets/icon/imageHeart_v3.png")}
+          source={require("@assets/icon/imageHeart_v2.png")}
           style={styles.logo}
         />
         <Text style={styles.title}>Are You Single</Text>
         <Text style={styles.subtitle}>
-          Where Hearts Connect, Love Finds Its Sync.
+          Nơi trái tim kết nối, tình yêu tìm thấy sự đồng điệu.
         </Text>
       </View>
-
       <View style={styles.buttonContainer}>
         <TouchableOpacity
           onPress={() => router.push("/(auth)/login")}
-          style={{ borderRadius: 25, overflow: "hidden" }}
+          style={styles.shadowWrapper}
         >
           <LinearGradient
-            colors={["#5C3A21", "#7A5C49"]}
+            colors={["#FF6B9A", "#E91E63"]} // 💖 gradient chính
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 0 }}
-            style={styles.buttonSigIn}
+            style={styles.buttonSignIn}
           >
-            <Text style={styles.buttonText}>Sign in</Text>
+            <Text style={styles.buttonText}>Đăng nhập</Text>
           </LinearGradient>
         </TouchableOpacity>
 
         <TouchableOpacity
-          style={styles.buttonSignUp}
+          style={[styles.buttonSignUp, styles.shadowWrapper]}
           onPress={() => router.push("/(auth)/register")}
         >
-          <Text style={styles.buttonTextSignIn}>Sign up</Text>
+          <Text style={styles.buttonTextSignUp}>Đăng ký</Text>
         </TouchableOpacity>
       </View>
 
+      {/* Terms */}
       <View>
         <Text style={styles.terms}>
           By signing up you agree to our Terms and Conditions
@@ -76,11 +76,11 @@ const styles = StyleSheet.create({
     fontSize: 32,
     fontWeight: "bold",
     marginTop: 10,
-    color: "#5C3A21",
+    color: "#FF4F81",
   },
   subtitle: {
     fontSize: 16,
-    color: "#7A5C49",
+    color: "white",
     textAlign: "center",
     marginTop: 5,
   },
@@ -88,7 +88,15 @@ const styles = StyleSheet.create({
     width: "80%",
     gap: 20,
   },
-  buttonSigIn: {
+  shadowWrapper: {
+    borderRadius: 25,
+    shadowColor: "#E91E63",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.25,
+    shadowRadius: 6,
+    elevation: 6,
+  },
+  buttonSignIn: {
     padding: 10,
     borderRadius: 25,
     alignItems: "center",
@@ -96,30 +104,28 @@ const styles = StyleSheet.create({
   buttonSignUp: {
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: "#FFFFFF",
+    backgroundColor: "white",
     padding: 10,
     borderRadius: 25,
-    borderColor: "#5C3A21",
+    borderColor: "#FF6B9A",
     borderWidth: 1,
   },
   buttonText: {
-    color: "#FFFFFF",
+    color: "#fff",
     fontSize: 18,
-    fontWeight: "600",
   },
-  buttonTextSignIn: {
-    color: "#5C3A21",
+  buttonTextSignUp: {
+    color: "#FF6B9A",
     fontSize: 18,
-    fontWeight: "600",
   },
   terms: {
     fontSize: 12,
-    color: "#7A5C49",
+    color: "white",
     textAlign: "center",
   },
   privacy: {
     fontSize: 12,
-    color: "#7A5C49",
+    color: "white",
     textAlign: "center",
     marginBottom: 20,
   },

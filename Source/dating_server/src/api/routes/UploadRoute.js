@@ -1,10 +1,17 @@
-// Tệp: src/api/routes/UploadRoute.js
-
 const express = require("express");
 const router = express.Router();
-const { uploadImage } = require("../controller/UploadController");
 const { authMiddleware } = require("../middleware/AuthMiddleware");
+const { multerUploads } = require("../middleware/storage");
+const {
+  uploadAvatar,
+  uploadPhoto,
+  deletePhoto,
+} = require("../controller/UploadController");
 
-router.post("/", authMiddleware, uploadImage);
+router.post("/avatar", authMiddleware, multerUploads, uploadAvatar);
+
+router.post("/photo", authMiddleware, multerUploads, uploadPhoto);
+
+router.delete("/photo", authMiddleware, deletePhoto);
 
 module.exports = router;
