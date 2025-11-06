@@ -4,10 +4,9 @@
     "slug": "are_you_single",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "splash": {
-      "image": "./assets/splash.png",
+      "image": "./src/assets/splash.png",
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
@@ -15,11 +14,19 @@
       "**/*"
     ],
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "infoPlist": {
+        "NSCameraUsageDescription": "Ứng dụng cần quyền truy cập camera để bạn có thể chụp ảnh và quay video.",
+        "NSMicrophoneUsageDescription": "Ứng dụng cần quyền truy cập microphone để bạn có thể ghi âm và tham gia các cuộc gọi thoại."
+      }
     },
     "android": {
+      "permissions": [
+        "android.permission.CAMERA",
+        "android.permission.RECORD_AUDIO"
+      ],
       "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
+        "foregroundImage": "./src/assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
       "package": "com.anonymous.are_you_single"
@@ -29,7 +36,16 @@
       "output": "static"
     },
     "plugins": [
-      "expo-router"
+      "expo-router",
+      "./plugins/zego-plugin.ts",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Ứng dụng cần quyền truy cập thư viện ảnh để bạn có thể chọn ảnh đại diện.",
+          "cameraPermission": "Ứng dụng cần quyền truy cập camera để bạn có thể chụp ảnh mới."
+        }
+      ],
+      "expo-font"
     ],
     "experiments": {
       "typedRoutes": true

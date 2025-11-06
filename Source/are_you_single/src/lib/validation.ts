@@ -33,3 +33,50 @@ export const registerSchema = z
   });
 
 export type RegisterData = z.infer<typeof registerSchema>;
+
+const locationSchema = z.object({
+  type: z.enum(["Point"]).default("Point"),
+  coordinates: z.array(z.number()).length(2, "Tọa độ phải có 2 giá trị"),
+}).optional();
+
+export const updateProfileSchema = z.object({
+  phone: z
+    .string()
+    .optional()
+    .or(z.literal('')), 
+    
+  status: z.boolean().optional(),
+  location: locationSchema,
+
+  name: z
+    .string({ required_error: 'Tên là bắt buộc' })
+    .min(2, 'Tên phải có ít nhất 2 ký tự'),
+  gender: z.enum(['male', 'female'], {
+    required_error: 'Vui lòng chọn giới tính',
+  }),
+  aboutMe: z
+    .string()
+    .optional()
+    .or(z.literal('')),
+  dob: z
+    .date({ invalid_type_error: 'Ngày sinh không hợp lệ' })
+    .nullable() 
+    .optional(),
+  
+  education: z
+    .string()
+    .optional()
+    .or(z.literal('')),
+  height: z
+    .string()
+    .refine((val) => val === "" || /^\d+$/.test(val), {
+      message: "Chiều cao phải là một số nguyên (cm)",
+    })
+    .optional()
+    .or(z.literal('')),
+  interested: z.array(z.string()).optional(),
+
+  photos: z.array(z.string()).optional(),
+});
+
+export type UpdateProfileData = z.infer<typeof updateProfileSchema>;

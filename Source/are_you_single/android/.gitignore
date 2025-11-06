@@ -1,0 +1,21 @@
+# Thư mục build của C++ (đây chính là cái gây lỗi)
+.cxx/
+
+# Thư mục build chung của Gradle
+build/
+
+# Thư mục build của app
+app/build/
+
+# Các file build tạm
+*.o
+*.a
+*.so
+
+# File local settings (không nên đưa lên)
+local.properties
+
+# Thư mục Android Studio / IDEA
+.idea/
+.gradle/
+*.iml

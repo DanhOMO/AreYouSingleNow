@@ -76,46 +76,37 @@ exports.getWhoLikeMe = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
-
 exports.updateProfile = async (req, res) => {
+  const { phone, status, profile, detail, location } = req.body;
+
   try {
-    const userId = req.user._id; // lấy từ token JWT
-    const {
-      phone,
-      status,
-      profile,
-      photos,
-      aboutMe,
-      location,
-      detail,
-      interested,
-    } = req.body;
-
-    const updatedUser = await User.findByIdAndUpdate(
-      userId,
-      {
-        phone,
-        status,
-        profile,
-        photos,
-        aboutMe,
-        location,
-        detail,
-        interested,
-      },
-      { new: true, runValidators: true }
-    );
-
-    if (!updatedUser) {
-      return res.status(404).json({ message: "User not found" });
+    const user = await User.findById(req.user.id);
+    if (!user) {
+      return res.status(404).json({ msg: "Không tìm thấy người dùng" });
     }
 
-    res.status(200).json({
-      message: "Profile updated successfully",
-      user: updatedUser,
-    });
-  } catch (error) {
-    console.error("Lỗi updateProfile:", error);
-    res.status(500).json({ message: error.message });
+    user.phone = phone || user.phone;
+    user.status = status !== undefined ? status : user.status;
+    user.location = location || user.location;
+
+    if (profile) {
+      user.profile.name = profile.name || user.profile.name;
+      user.profile.gender = profile.gender || user.profile.gender;
+      user.profile.aboutMe = profile.aboutMe || user.profile.aboutMe;
+      user.profile.dob = profile.dob || user.profile.dob;
+    }
+
+    if (detail) {
+      user.detail.height = detail.height || user.detail.height;
+      user.detail.education = detail.education || user.detail.education;
+      user.detail.interested = detail.interested || user.detail.interested;
+    }
+
+    await user.save();
+    res.status(200).json(user);
+  } catch (err) {
+    res
+      .status(500)
+      .json({ msg: "Lỗi server khi cập nhật profile", error: err.message });
   }
 };

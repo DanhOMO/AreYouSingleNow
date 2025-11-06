@@ -4,17 +4,16 @@ import {
   Text,
   Image,
   TouchableOpacity,
+  StyleSheet,
   TextInput,
   KeyboardAvoidingView,
   Platform,
   FlatList,
-  StyleSheet,
+  Alert,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-// FIX LAYOUT 1: Import lại useSafeAreaInsets
 import {
   SafeAreaProvider,
-  useSafeAreaInsets,
 } from "react-native-safe-area-context";
 import Messages from "@components/Messages";
 import { useAuthStore } from "@store/useAuthStore";
@@ -26,13 +25,14 @@ import { User } from "src/types/User";
 import { Message } from "src/types/Message";
 import { useSocket } from "@hooks/useSocket";
 
+
 type NewMessage = Message & { tempId?: string } & { isTemporary: boolean };
 
 export default function ChatDetail() {
   const { matchId } = useLocalSearchParams<{ matchId: string }>();
   const currentUser = useAuthStore((state) => state.user);
   const { partner, isError, isLoading } = usePartnerByMatchId(matchId);
-  const { messages, mutateMessages } = useChatHistoryByMatchId(matchId);
+  const { messages,  mutateMessages } = useChatHistoryByMatchId(matchId);
   const [inputText, setInputText] = useState("");
   const router = useRouter();
   const socket = useSocket(matchId);
@@ -47,7 +47,8 @@ export default function ChatDetail() {
         if (newMessage.senderId === currentUser?._id) {
           const tempMessageIndex = currentMessages.findIndex(
             (m) =>
-              m.isTemporary === true &&
+              (m as any).isTemporary === true && // Dùng (m as any) cho an toàn
+
               m.senderId === newMessage.senderId &&
               m.text === newMessage.text
           );
@@ -61,12 +62,12 @@ export default function ChatDetail() {
           if (currentMessages.find((m) => m._id === newMessage._id)) {
             return currentMessages;
           }
-          return [...currentMessages, newMessage];
+          return [newMessage, ...currentMessages]; // Sửa: Thêm vào đầu
         } else {
           if (currentMessages.find((m) => m._id === newMessage._id)) {
             return currentMessages;
           }
-          return [...currentMessages, newMessage];
+          return [newMessage, ...currentMessages]; // Sửa: Thêm vào đầu
         }
       }, false);
     };
@@ -78,6 +79,7 @@ export default function ChatDetail() {
     };
   }, [socket, mutateMessages, currentUser]);
 
+  // LOGIC: Gửi tin nhắn (Lấy từ 'main', fix lỗi duplicate)
   const handleSend = () => {
     if (!inputText.trim() || !currentUser || !matchId) return;
 
@@ -105,12 +107,23 @@ export default function ChatDetail() {
     setInputText("");
   };
 
-  if (isError) {
-    return <ErrorState message="Load dữ liệu không thành công!!!" />;
-  }
-  if (isLoading || !partner) {
+  // LOGIC: Thêm tính năng Video Call (từ 'HEAD')
+  const handleVideoCall = (callID: string) => {
+    if (!matchId) {
+      Alert.alert("Lỗi", "Không tìm thấy thông tin cuộc trò chuyện.");
+      return;
+    }
+    router.push(`/chat/call/${callID}`);
+  };
+
+  if (isLoading) {
     return <Loading />;
   }
+  if (isError || !partner) {
+    return <ErrorState message="Không thể tải thông tin người dùng." />;
+  }
+
+
 
   const profile = partner?.profile;
   const avatarUri =
@@ -119,16 +132,12 @@ export default function ChatDetail() {
 
   return (
     <SafeAreaProvider>
-      <View
-        style={{
-          flex: 1,
-          backgroundColor: "#fff",
-        }}
-      >
+      <View style={{ flex: 1, backgroundColor: "#fff" }}>
         <KeyboardAvoidingView
-          style={styles.kavContainer}
+          style={styles.kavContainer} 
           behavior={Platform.OS === "ios" ? "padding" : "height"}
         >
+          {/* Header (UI 'main' + Nút 'HEAD') */}
           <View style={styles.headerContainer}>
             <TouchableOpacity onPress={() => router.push("/chat")}>
               <Ionicons name="chevron-back" size={26} color="#FF6B9A" />
@@ -137,6 +146,16 @@ export default function ChatDetail() {
               <Image source={{ uri: avatarUri }} style={styles.headerAvatar} />
               <Text style={styles.headerName}>{profile?.name}</Text>
             </View>
+
+            <View style={{ flex: 1 }} />
+
+            {/* Nút Video Call (từ 'HEAD') */}
+            <TouchableOpacity
+              onPress={() => handleVideoCall(matchId)}
+              style={styles.videoButton} // Style thêm
+            >
+              <Ionicons name="videocam-outline" size={28} color="#FF6B9A" />
+            </TouchableOpacity>
           </View>
 
           <View style={styles.flatList}>
@@ -146,12 +165,12 @@ export default function ChatDetail() {
               keyExtractor={(item) => item._id!.toString()}
               renderItem={({ item }) => (
                 <Messages
-                  item={item}
+                  item={item as NewMessage} // Dùng NewMessage
                   currentUser={currentUser as User}
                   partner={partner!}
                 />
               )}
-              // inverted
+              inverted // Giữ lại từ HEAD
               keyboardShouldPersistTaps="handled"
               keyboardDismissMode="on-drag"
               contentContainerStyle={styles.listContentContainer}
@@ -183,6 +202,7 @@ export default function ChatDetail() {
   );
 }
 
+// --- STYLES: (Lấy từ 'main' và thêm 'videoButton') ---
 const styles = StyleSheet.create({
   kavContainer: {
     flex: 1,
@@ -217,12 +237,15 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     color: "#FF6B9A",
   },
+  videoButton: {
+    paddingLeft: 10,
+  },
   listContainer: {
     flex: 1,
     backgroundColor: "#fff",
   },
   flatList: {
-    height: "75%", // giữ nguyên chiều cao
+    flex: 1, // Thay vì height: "75%"
   },
   listContentContainer: {
     paddingHorizontal: 10,
