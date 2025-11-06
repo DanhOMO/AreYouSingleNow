@@ -4,15 +4,15 @@ import { Image, StyleSheet, Text, View } from "react-native";
 import { Message } from "src/types/Message";
 import { User } from "src/types/User";
 interface MessagesProps {
-  item: Message,
-  currentUser: User,
-  partner: Partner
+  item: Message;
+  currentUser: User;
+  partner: Partner;
 }
 const Messages = ({ item, currentUser, partner }: MessagesProps) => {
-    const isUser = item.senderId === currentUser._id;
-    const avatarUri =
-  partner?.profile.photos?.[0] ??
-  "https://cdn-icons-png.flaticon.com/512/847/847969.png";
+  const isUser = item.senderId === currentUser._id;
+  const avatarUri =
+    partner?.profile.photos?.[0] ??
+    "https://cdn-icons-png.flaticon.com/512/847/847969.png";
   return (
     <View
       style={[
@@ -54,15 +54,18 @@ const styles = StyleSheet.create({
   messageRight: { justifyContent: "flex-end", alignSelf: "flex-end" },
   avatarSmall: { width: 26, height: 26, borderRadius: 13, marginRight: 5 },
   bubble: { maxWidth: "75%", borderRadius: 16, padding: 10 },
-  bubbleLeft: { backgroundColor: "#f2f2f2" },
+  bubbleLeft: {
+    backgroundColor: "#F0F0F0",
+    borderRadius: 15,
+  },
   bubbleRight: { backgroundColor: "#FF6B9A" },
   inputBar: {
     flexDirection: "row",
     alignItems: "center",
     borderTopWidth: 1,
-    borderTopColor: "#eee",
+    borderTopColor: "white",
     padding: 10,
-    backgroundColor: "#fff",
+    backgroundColor: "white",
   },
   textInput: {
     flex: 1,

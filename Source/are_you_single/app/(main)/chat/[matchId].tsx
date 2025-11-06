@@ -26,7 +26,7 @@ import { User } from "src/types/User";
 import { Message } from "src/types/Message";
 import { useSocket } from "@hooks/useSocket";
 
-type NewMessage = Message & { tempId?: string }  & {isTemporary: boolean};
+type NewMessage = Message & { tempId?: string } & { isTemporary: boolean };
 
 export default function ChatDetail() {
   const { matchId } = useLocalSearchParams<{ matchId: string }>();
@@ -36,20 +36,18 @@ export default function ChatDetail() {
   const [inputText, setInputText] = useState("");
   const router = useRouter();
   const socket = useSocket(matchId);
-  
 
   useEffect(() => {
     if (!socket) return;
 
-    const handleNewMessage = (newMessage : NewMessage ) => {
+    const handleNewMessage = (newMessage: NewMessage) => {
       mutateMessages((currentMessages: Message[] = []) => {
-        if (!currentMessages) currentMessages = []; 
-        
-        if (newMessage.senderId === currentUser?._id) {
+        if (!currentMessages) currentMessages = [];
 
+        if (newMessage.senderId === currentUser?._id) {
           const tempMessageIndex = currentMessages.findIndex(
             (m) =>
-              m.isTemporary === true && 
+              m.isTemporary === true &&
               m.senderId === newMessage.senderId &&
               m.text === newMessage.text
           );
@@ -57,7 +55,7 @@ export default function ChatDetail() {
           if (tempMessageIndex > -1) {
             const newCache = [...currentMessages];
             newCache[tempMessageIndex] = newMessage;
-            return newCache; 
+            return newCache;
           }
 
           if (currentMessages.find((m) => m._id === newMessage._id)) {
@@ -66,7 +64,7 @@ export default function ChatDetail() {
           return [...currentMessages, newMessage];
         } else {
           if (currentMessages.find((m) => m._id === newMessage._id)) {
-            return currentMessages; 
+            return currentMessages;
           }
           return [...currentMessages, newMessage];
         }
@@ -92,14 +90,11 @@ export default function ChatDetail() {
       createdAt: new Date().toISOString(),
       isTemporary: true,
     };
-    
-    mutateMessages(
-      (currentMessages: Message[] = []) => {
-         if (!currentMessages) currentMessages = [];
-        return [...currentMessages, tempMessage];
-      },
-      false
-    );
+
+    mutateMessages((currentMessages: Message[] = []) => {
+      if (!currentMessages) currentMessages = [];
+      return [...currentMessages, tempMessage];
+    }, false);
 
     socket.emit("sendMessage", {
       matchId: matchId,
@@ -144,26 +139,25 @@ export default function ChatDetail() {
             </View>
           </View>
 
-          <View style= {styles.flatList}>
+          <View style={styles.flatList}>
             <FlatList
-            style={styles.listContainer} 
-            data={messages}
-            keyExtractor={(item) => item._id!.toString()}
-            renderItem={({ item }) => (
-              <Messages
-                item={item}
-                currentUser={currentUser as User}
-                partner={partner!}
-              />
-            )}
-            // inverted 
-            keyboardShouldPersistTaps="handled"
-            keyboardDismissMode="on-drag"
-            contentContainerStyle={styles.listContentContainer}
-          />
+              style={styles.listContainer}
+              data={messages}
+              keyExtractor={(item) => item._id!.toString()}
+              renderItem={({ item }) => (
+                <Messages
+                  item={item}
+                  currentUser={currentUser as User}
+                  partner={partner!}
+                />
+              )}
+              // inverted
+              keyboardShouldPersistTaps="handled"
+              keyboardDismissMode="on-drag"
+              contentContainerStyle={styles.listContentContainer}
+            />
           </View>
 
-          
           <View style={styles.inputContainer}>
             <TouchableOpacity>
               <Ionicons name="image-outline" size={24} color="#FF6B9A" />
@@ -174,6 +168,10 @@ export default function ChatDetail() {
               placeholder="Nhắn tin..."
               style={styles.textInput}
               multiline
+              autoCorrect={false}
+              textAlignVertical="top"
+              underlineColorAndroid="transparent"
+              keyboardType="default"
             />
             <TouchableOpacity onPress={handleSend}>
               <Ionicons name="send" size={24} color="#FF6B9A" />
@@ -194,8 +192,14 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingHorizontal: 15,
     paddingVertical: 10,
+    backgroundColor: "#fff",
     borderBottomWidth: 1,
-    borderBottomColor: "#eee",
+    borderBottomColor: "#FDE3EB",
+    shadowColor: "#FF6B9A",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 3,
+    elevation: 3,
   },
   headerProfile: {
     flexDirection: "row",
@@ -211,33 +215,40 @@ const styles = StyleSheet.create({
   headerName: {
     fontSize: 16,
     fontWeight: "600",
-    color: "#333",
+    color: "#FF6B9A",
   },
   listContainer: {
-    flex: 1, 
+    flex: 1,
+    backgroundColor: "#fff",
   },
-  flatList:{
-    height: "75%"
+  flatList: {
+    height: "75%", // giữ nguyên chiều cao
   },
   listContentContainer: {
     paddingHorizontal: 10,
     paddingTop: 10,
+    paddingBottom: 20,
   },
   inputContainer: {
     flexDirection: "row",
     alignItems: "center",
     borderTopWidth: 1,
-    borderTopColor: "#eee",
+    borderTopColor: "#FDE3EB",
     padding: 10,
     backgroundColor: "#fff",
+    shadowOffset: { width: 0, height: -2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 3,
+    elevation: 3,
   },
   textInput: {
     flex: 1,
-    backgroundColor: "#f9f9f9",
-    borderRadius: 20,
+    backgroundColor: "white",
+    borderRadius: 25,
     paddingHorizontal: 15,
     marginHorizontal: 10,
     paddingVertical: Platform.OS === "ios" ? 10 : 8,
     fontSize: 16,
+    color: "black",
   },
 });
