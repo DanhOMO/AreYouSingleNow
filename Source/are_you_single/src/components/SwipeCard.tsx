@@ -1,4 +1,28 @@
-import React from "react";
+type UserProfile = {
+  name?: string;
+  dob?: Date;
+  aboutMe?: string;
+  photos?: string[];
+};
+
+type UserDetail = {
+  interested?: string[];
+  education?: string;
+  height?: number;
+};
+
+type User = {
+  profile?: UserProfile;
+  detail?: UserDetail;
+};
+
+type SwipeCardProps = {
+  user: User;
+  onLike?: () => void;
+  onDislike?: () => void;
+};
+
+import { Ionicons } from "@expo/vector-icons";
 import {
   View,
   Text,
@@ -9,18 +33,50 @@ import {
   Image,
   TouchableOpacity,
 } from "react-native";
-import type { User } from "src/types/User";
 
 const { width, height } = Dimensions.get("window");
 
-type SwipeCardProps = {
-  user: User;
-  onLike?: () => void;
-  onDislike?: () => void;
-};
+const ACCENT_COLOR = "#1A1A1A";
+const SOFT_GRAY = "#EEEEEE";
+const LIGHT_GRAY_BORDER = "#FF6B9A";
+const WHITE = "#FFFFFF";
+
+const InfoSection = ({
+  title,
+  children,
+  style,
+}: {
+  title: string;
+  children: React.ReactNode;
+  style?: object;
+}) => (
+  <View style={[styles.infoSection, style]}>
+    <Text style={styles.sectionTitle}>{title}</Text>
+    <View style={{ marginTop: 10 }}>{children}</View>
+  </View>
+);
 
 const SwipeCard: React.FC<SwipeCardProps> = ({ user, onLike, onDislike }) => {
-  const photo = user?.profile?.photos?.[0] ?? "https://via.placeholder.com/400";
+  const photo =
+    user?.profile?.photos?.[0] ??
+    "https://placehold.co/400x600/C8C8C8/1A1A1A?text=Minimal+Image";
+  const userName = user.profile?.name ?? "Người dùng ẩn danh";
+  const yearDob = new Date(user.profile?.dob).getFullYear();
+  const today = new Date();
+  let userAge = today.getFullYear() - yearDob;
+
+  const infoSectionMarginStyle = {
+    marginHorizontal: 0,
+    marginVertical: 10,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: LIGHT_GRAY_BORDER,
+    shadowColor: "#000",
+    shadowOpacity: 0.05,
+    shadowOffset: { width: 0, height: 1 },
+    shadowRadius: 2,
+    elevation: 1,
+  };
 
   return (
     <View style={styles.wrapper}>
@@ -32,20 +88,32 @@ const SwipeCard: React.FC<SwipeCardProps> = ({ user, onLike, onDislike }) => {
           <ImageBackground
             source={{ uri: photo }}
             resizeMode="cover"
-            imageStyle={styles.imageStyle}
             style={styles.imageBackground}
           >
             <View style={styles.overlay} />
             <View style={styles.profileInfo}>
-              <Text style={styles.profileName}>{user.profile?.name}</Text>
+              <Text
+                style={styles.profileName}
+                numberOfLines={2}
+                ellipsizeMode="tail"
+              >
+                {userName}
+              </Text>
+              {userAge && <Text style={styles.profileAge}>{userAge} tuổi</Text>}
             </View>
           </ImageBackground>
+          <TouchableOpacity style={styles.heartIcon}>
+            <Ionicons name="heart" size={60} color={LIGHT_GRAY_BORDER} />
+          </TouchableOpacity>
 
-          <InfoSection title="My bio">
-            <Text style={styles.text}>{user.profile?.aboutMe ?? "Chưa có mô tả."}</Text>
+          <InfoSection title="My bio" style={infoSectionMarginStyle}>
+            <Text style={styles.text}>
+              {user.profile?.aboutMe ?? "Chưa có mô tả."}
+            </Text>
           </InfoSection>
+
           {user.detail?.interested?.length > 0 && (
-            <InfoSection title="Sở thích">
+            <InfoSection title="Sở thích" style={infoSectionMarginStyle}>
               <View style={styles.interestContainer}>
                 {user.detail.interested.map((i, idx) => (
                   <View key={idx} style={styles.interestItem}>
@@ -57,7 +125,7 @@ const SwipeCard: React.FC<SwipeCardProps> = ({ user, onLike, onDislike }) => {
           )}
 
           {user.detail?.education && (
-            <InfoSection title="Giáo dục">
+            <InfoSection title="Giáo dục" style={infoSectionMarginStyle}>
               <View style={styles.singleTag}>
                 <Text style={styles.tagText}>🎓 {user.detail.education}</Text>
               </View>
@@ -65,7 +133,7 @@ const SwipeCard: React.FC<SwipeCardProps> = ({ user, onLike, onDislike }) => {
           )}
 
           {user.detail?.height && (
-            <InfoSection title="Chiều cao">
+            <InfoSection title="Chiều cao" style={infoSectionMarginStyle}>
               <View style={styles.singleTag}>
                 <Text style={styles.tagText}>📏 {user.detail.height} cm</Text>
               </View>
@@ -73,7 +141,19 @@ const SwipeCard: React.FC<SwipeCardProps> = ({ user, onLike, onDislike }) => {
           )}
 
           {user.profile?.photos?.slice(1).map((p, i) => (
-            <Image key={i} source={{ uri: p }} style={styles.extraImage} />
+            <Image
+              key={i}
+              source={{ uri: p }}
+              style={[
+                styles.extraImage,
+                {
+                  width: width - width * 0.02 * 2 - 48,
+                  marginHorizontal: 10,
+                  alignSelf: "center",
+                  marginBottom: 10,
+                },
+              ]}
+            />
           ))}
         </View>
       </ScrollView>
@@ -81,13 +161,21 @@ const SwipeCard: React.FC<SwipeCardProps> = ({ user, onLike, onDislike }) => {
       {(onLike || onDislike) && (
         <View style={styles.actionButtons}>
           {onDislike && (
-            <TouchableOpacity onPress={onDislike} style={styles.btnLeft}>
-              <Text style={styles.btnIcon}>❌</Text>
+            <TouchableOpacity
+              onPress={onDislike}
+              style={styles.btnLeftMinimal}
+              activeOpacity={0.7}
+            >
+              <Text style={[styles.btnIconMinimal, { fontSize: 24 }]}>❌</Text>
             </TouchableOpacity>
           )}
           {onLike && (
-            <TouchableOpacity onPress={onLike} style={styles.btnRight}>
-              <Text style={styles.btnIcon}>💗</Text>
+            <TouchableOpacity
+              onPress={onLike}
+              style={styles.btnRightMinimal}
+              activeOpacity={0.7}
+            >
+              <Text style={[styles.btnIconMinimal, { fontSize: 32 }]}>♥</Text>
             </TouchableOpacity>
           )}
         </View>
@@ -96,129 +184,168 @@ const SwipeCard: React.FC<SwipeCardProps> = ({ user, onLike, onDislike }) => {
   );
 };
 
-const InfoSection = ({
-  title,
-  children,
-}: {
-  title: string;
-  children: React.ReactNode;
-}) => (
-  <View style={styles.infoSection}>
-    <Text style={styles.sectionTitle}>{title}</Text>
-    <View style={{ marginTop: 20 }}>{children}</View>
-  </View>
-);
-
 export default SwipeCard;
 
 const styles = StyleSheet.create({
   wrapper: {
-    width: width * 0.95,
-    alignSelf: "center",
-    marginVertical: 10,
-    maxHeight: height * 0.92,
+    width: width,
+    paddingHorizontal: width * 0.04,
+    maxHeight: height * 0.9,
+    backgroundColor: WHITE,
+    overflow: "hidden",
+  },
+  scrollContent: {
+    paddingBottom: 100,
   },
   card: {
-    backgroundColor: "white",
+    position: "relative",
+    backgroundColor: WHITE,
     borderRadius: 20,
     overflow: "hidden",
+    shadowColor: "#000",
+    shadowOpacity: 0.1,
+    shadowOffset: { width: 0, height: 4 },
+    shadowRadius: 8,
+    elevation: 6,
     paddingBottom: 10,
   },
   imageBackground: {
     width: "100%",
-    height: height * 0.53,
+    height: height * 0.55,
     justifyContent: "flex-end",
+    marginBottom: 0,
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    borderBottomLeftRadius: 20,
+    borderBottomRightRadius: 250,
+    overflow: "hidden",
   },
-  imageStyle: {
-    borderRadius: 20,
+  heartIcon: {
+    position: "absolute",
+    top: height * 0.43,
+    right: 20,
+    backgroundColor: "white",
+    borderRadius: 60,
+    borderWidth: 1,
+    borderColor: LIGHT_GRAY_BORDER,
+    padding: 8,
+    zIndex: 2,
+    width: 100,
+    height: 100,
+    justifyContent: "center",
+    alignItems: "center",
   },
   overlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: "rgba(0,0,0,0.25)",
+    backgroundColor: "rgba(0,0,0,0.15)",
   },
   profileInfo: {
-    padding: 18,
+    padding: 20,
+    zIndex: 1,
+    flexShrink: 1,
+    width: width - 150,
   },
   profileName: {
-    color: "#fff",
-    fontSize: 24,
-    fontWeight: "700",
+    color: "white",
+    fontSize: 32,
+    fontWeight: "600",
+  },
+  profileAge: {
+    color: "white",
+    fontSize: 18,
+    marginTop: 4,
+    fontWeight: "400",
   },
   infoSection: {
-    backgroundColor: "white",
-    marginVertical: 8,
+    backgroundColor: WHITE,
     padding: 20,
   },
   sectionTitle: {
-    position: "absolute",
-    top: 8,
-    left: 12,
-    fontWeight: "700",
+    fontWeight: "600",
+    color: ACCENT_COLOR,
+    fontSize: 18,
+    borderBottomWidth: 1,
+    borderBottomColor: LIGHT_GRAY_BORDER,
+    alignSelf: "flex-start",
+    paddingBottom: 4,
   },
   text: {
     fontSize: 16,
-    color: "#333",
-    lineHeight: 22,
+    color: ACCENT_COLOR,
+    lineHeight: 24,
+    fontWeight: "300",
   },
   interestContainer: {
     flexDirection: "row",
     flexWrap: "wrap",
-    marginTop: 8,
+    marginTop: 6,
   },
   interestItem: {
-    backgroundColor: "rgb(243,243,243)",
-    borderRadius: 10,
-    paddingHorizontal: 12,
+    backgroundColor: SOFT_GRAY,
+    borderRadius: 8,
+    paddingHorizontal: 14,
     paddingVertical: 8,
-    margin: 6,
+    margin: 5,
   },
   interestText: {
-    fontWeight: "700",
+    fontWeight: "500",
+    color: ACCENT_COLOR,
+    fontSize: 14,
   },
   singleTag: {
-    backgroundColor: "rgb(243,243,243)",
-    borderRadius: 10,
-    paddingHorizontal: 12,
+    backgroundColor: SOFT_GRAY,
+    borderRadius: 8,
+    paddingHorizontal: 14,
     paddingVertical: 8,
     alignSelf: "flex-start",
   },
   tagText: {
-    fontWeight: "700",
+    fontWeight: "500",
+    color: ACCENT_COLOR,
+    fontSize: 14,
   },
   extraImage: {
-    width: "100%",
-    height: 320,
+    height: 350,
     borderRadius: 12,
-    marginTop: 10,
+    marginTop: 15,
   },
   actionButtons: {
+    position: "absolute",
+    bottom: 0,
+    width: width,
     flexDirection: "row",
-    backgroundColor: "white",
-    justifyContent: "space-around",
-    paddingVertical: 12,
-    marginTop: 8,
+    justifyContent: "space-evenly",
+    alignItems: "center",
+    paddingVertical: 15,
+    paddingHorizontal: width * 0.04,
+    zIndex: 10,
+    backgroundColor: WHITE,
   },
-  btnLeft: {
-    backgroundColor: "#eee",
-    borderRadius: 30,
-    padding: 10,
-    width: 56,
+  btnLeftMinimal: {
+    backgroundColor: WHITE,
+    borderRadius: 40,
+    padding: 15,
+    width: 60,
+    height: 60,
     alignItems: "center",
     justifyContent: "center",
+    borderWidth: 1,
+    borderColor: LIGHT_GRAY_BORDER,
   },
-  btnRight: {
-    backgroundColor: "#FF4F81",
-    borderRadius: 30,
-    padding: 10,
-    width: 56,
+  btnRightMinimal: {
+    backgroundColor: WHITE,
+    borderRadius: 40,
+    padding: 15,
+    width: 70,
+    height: 70,
     alignItems: "center",
     justifyContent: "center",
+    borderWidth: 2,
+    borderColor: ACCENT_COLOR,
   },
-  btnIcon: {
-    fontSize: 18,
-    color: "white",
-  },
-  scrollContent: {
-    paddingBottom: 10,
+  // Icon Minimalist
+  btnIconMinimal: {
+    fontWeight: "normal",
+    color: ACCENT_COLOR,
   },
 });

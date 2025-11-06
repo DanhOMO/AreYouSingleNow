@@ -1,19 +1,9 @@
-import { Ionicons } from "@expo/vector-icons";
+// import { Ionicons } from "@expo/vector-icons";
 import React, { useRef, useState } from "react";
-import {
-  Animated,
-  Dimensions,
-  Image,
-  ImageBackground,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-  ActivityIndicator,
-} from "react-native";
+import { Animated, Dimensions, StyleSheet, Text, View } from "react-native";
 import Swiper from "react-native-deck-swiper";
-import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
+import { SafeAreaProvider } from "react-native-safe-area-context";
+import { LinearGradient } from "expo-linear-gradient";
 
 import {
   useUserSuggestions,
@@ -21,10 +11,12 @@ import {
   useHandleDisLike,
 } from "@hooks/useApi";
 import type { User } from "src/types/User";
-import api from "src/lib/api";
 import Loading from "@components/Loading";
 import SwipeCard from "@components/SwipeCard";
 import { useFilterStore } from "@store/useAuthStore";
+
+const { width, height } = Dimensions.get("window");
+
 const Home = () => {
   const [index, setIndex] = useState(0);
   const swipeDirection = useRef(new Animated.Value(0)).current;
@@ -33,129 +25,123 @@ const Home = () => {
 
   const { suggestions, isLoading, isError, mutateSuggestions } =
     useUserSuggestions();
-  const { triggerLike, isMutating: isLiking } = useHandleLike();
-  const { triggerDisLike, isMutating: isDisliking } = useHandleDisLike();
+  const { triggerLike } = useHandleLike();
+  const { triggerDisLike } = useHandleDisLike();
 
   const handleLike = async (cardIndex: number) => {
     const user = suggestions?.[cardIndex];
     if (!user) return;
-
-    console.log("Like:", user.profile.name);
     try {
       const result = await triggerLike({ targetUserId: user._id });
-
-      if (result.success) {
-        mutateSuggestions();
-      }
+      if (result.success) mutateSuggestions();
     } catch (e) {
-      console.error("Lỗi khi dislike:", e);
+      console.error("Lỗi khi like:", e);
     }
   };
 
   const handleDislike = async (cardIndex: number) => {
     const user = suggestions?.[cardIndex];
     if (!user) return;
-
-    console.log("DISLIKE user:", user._id);
     try {
       const result = await triggerDisLike({ targetUserId: user._id });
-      if (result.success) {
-        mutateSuggestions();
-      }
+      if (result.success) mutateSuggestions();
     } catch (e) {
-      console.error("Lỗi khi like:", e);
+      console.error("Lỗi khi dislike:", e);
     }
   };
 
   const filteredSuggestions =
     suggestions?.filter((user) => {
       if (!user || !user.profile) return false;
-
       const { gender, minAge, maxAge } = filter;
-
       if (gender && user.profile.gender !== gender) return false;
-
       if (minAge || maxAge) {
         const dob = new Date(user.profile.dob);
         const age = new Date().getFullYear() - dob.getFullYear();
         if (minAge && age < minAge) return false;
         if (maxAge && age > maxAge) return false;
       }
-
       return true;
     }) || [];
 
-  const uniqueSuggestions = filteredSuggestions.filter(
-    (user, idx, self) => idx === self.findIndex((u) => u._id === user._id)
-  );
-
-  if (isLoading) {
-    return <Loading />;
-  }
-
-  if (isError) {
+  if (
+    !filteredSuggestions ||
+    filteredSuggestions.length === 0 ||
+    index >= filteredSuggestions.length
+  ) {
     return (
-      <SafeAreaView style={[style.container, { justifyContent: "center" }]}>
-        <Text style={{ color: "red" }}>
-          Lỗi khi tải dữ liệu. Vui lòng thử lại.
-        </Text>
-      </SafeAreaView>
+      <LinearGradient
+        colors={["#FF6B9A", "#FFC0CB", "#E91E63"]}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={styles.centerScreen}
+      >
+        <Text style={styles.emptyText}>Không còn người dùng phù hợp 😌</Text>
+      </LinearGradient>
     );
   }
 
+  if (isLoading) return <Loading />;
+
+  if (isError)
+    return (
+      <LinearGradient
+        colors={["#FF6B9A", "#FFC0CB", "#E91E63"]}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={[styles.container, { justifyContent: "center" }]}
+      >
+        <Text style={{ color: "white", textAlign: "center" }}>
+          Đã xảy ra lỗi, vui lòng thử lại sau.
+        </Text>
+      </LinearGradient>
+    );
+
   return (
     <SafeAreaProvider>
-      <SafeAreaView style={style.container}>
-        <View style={{ backgroundColor: "white", height: "100%" }}>
-          <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
-            <View style={style.cardContainer}>
-              <Swiper
-                ref={swiperRef}
-                cards={filteredSuggestions || []}
-                cardIndex={index}
-                renderCard={(user: User) => (
-                  <SwipeCard
-                    key={user._id}
-                    user={user}
-                    onLike={() => handleLike(index)}
-                    onDislike={() => handleDislike(index)}
-                  />
-                )}
-                stackSize={2}
-                backgroundColor={"transparent"}
-                onSwiped={(i) => setIndex(i)}
-                onSwiping={(x) => swipeDirection.setValue(x)}
-                onSwipedAll={() => console.log("Hết rồi!!")}
-                verticalSwipe={false}
-                animateCardOpacity
-                onSwipedLeft={(i) => handleDislike(i)}
-                onSwipedRight={(i) => handleLike(i)}
-                disableBottomSwipe
-                disableTopSwipe
-                stackSeparation={2}
-                swipeAnimationDuration={200}
-                cardStyle={{
-                  width: "100%",
-                  height: "100%",
-                  marginBottom: 90,
-                  borderRadius: 10,
-                }}
-                containerStyle={{
-                  width: "100%",
-                  height: Dimensions.get("window").height * 0.75,
-                  marginBottom: 60,
-                }}
-                cardHorizontalMargin={0}
-                cardVerticalMargin={10}
-              />
-            </View>
-          </ScrollView>
+      <LinearGradient
+        colors={["#FF6B9A", "#FFC0CB", "#E91E63"]}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={styles.container}
+      >
+        <View style={styles.swiperContainer}>
+          <Swiper
+            ref={swiperRef}
+            cards={filteredSuggestions}
+            cardIndex={index}
+            renderCard={(user: User) =>
+              user ? (
+                <SwipeCard
+                  key={user._id}
+                  user={user}
+                  onLike={() => handleLike(index)}
+                  onDislike={() => handleDislike(index)}
+                />
+              ) : null
+            }
+            stackSize={3}
+            stackSeparation={10}
+            verticalSwipe={false}
+            animateCardOpacity
+            onSwiped={(i) => setIndex(i)}
+            onSwiping={(x) => swipeDirection.setValue(x)}
+            onSwipedLeft={(i) => handleDislike(i)}
+            onSwipedRight={(i) => handleLike(i)}
+            disableBottomSwipe
+            disableTopSwipe
+            backgroundColor="transparent"
+            cardHorizontalMargin={0}
+            cardVerticalMargin={0}
+            containerStyle={styles.swiperDeck}
+          />
 
+          {/* Swipe Labels */}
           <Animated.View
             style={[
-              style.sideLabel,
+              styles.sideLabel,
+              { left: 25 },
               {
-                left: 10,
                 opacity: swipeDirection.interpolate({
                   inputRange: [-150, -50],
                   outputRange: [1, 0],
@@ -164,13 +150,14 @@ const Home = () => {
               },
             ]}
           >
-            <Text style={[style.labelText, { color: "black" }]}>X</Text>
+            <Text style={[styles.labelText, { color: "#B0A8A8" }]}>X</Text>
           </Animated.View>
+
           <Animated.View
             style={[
-              style.sideLabel,
+              styles.sideLabel,
+              { right: 25 },
               {
-                right: 10,
                 opacity: swipeDirection.interpolate({
                   inputRange: [50, 150],
                   outputRange: [0, 1],
@@ -179,166 +166,53 @@ const Home = () => {
               },
             ]}
           >
-            <Text style={[style.labelText, { color: "black" }]}>✓</Text>
+            <Text style={[styles.labelText, { color: "#FF6B9A" }]}>✓</Text>
           </Animated.View>
         </View>
-        {/* 
-        <View style={style.buttonNav}>
-          <TouchableOpacity
-            style={style.button}
-            onPress={() => swiperRef.current?.swipeLeft()}
-          >
-            <Ionicons name="close" size={32} color="#FF4F81" />
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={style.button}
-            onPress={() => swiperRef.current?.swipeRight()}
-          >
-            <Ionicons name="heart" size={30} color="#FF6B9A" />
-          </TouchableOpacity>
-        </View> */}
-      </SafeAreaView>
+      </LinearGradient>
     </SafeAreaProvider>
   );
 };
 
-const style = StyleSheet.create({
+const styles = StyleSheet.create({
   container: {
     flex: 1,
-    flexDirection: "column",
-    alignContent: "center",
   },
-  progressBarBackground: {
-    height: 4,
-    backgroundColor: "#e5e7eb",
-    width: "100%",
-  },
-  progressBarFill: {
-    height: "100%",
-    backgroundColor: "#FF4F81",
-    width: "50%",
-  },
-  cardContainer: {
+  swiperContainer: {
     flex: 1,
     alignItems: "center",
-    justifyContent: "space-between",
-    paddingBottom: 80,
-    width: "100%",
-    alignSelf: "stretch",
+    justifyContent: "center",
   },
-  card: {
-    width: "95%",
-    margin: "auto",
-    // height: Dimensions.get("window").height * 1.2,
-    backgroundColor: "white",
-  },
-  imageBackground: {
-    width: "100%",
-    height: 650,
-    borderRadius: 30,
-    overflow: "hidden",
-  },
-  overlay: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: "rgba(0,0,0,0.35)",
-  },
-  profileInfo: {
-    position: "absolute",
-    left: 20,
-    bottom: 20,
-    justifyContent: "flex-start",
-  },
-  profileName: {
-    color: "#fff",
-    fontSize: 22,
-    fontWeight: "bold",
-  },
-  badge: {
-    backgroundColor: "#bae6fd",
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 8,
-    marginTop: 6,
-  },
-  badgeText: {
-    color: "#0284c7",
-    fontSize: 12,
-  },
-  jobText: {
-    color: "rgba(255,255,255,0.8)",
-    fontSize: 13,
-    marginTop: 8,
-  },
-  bottomNav: {
-    flexDirection: "row",
-    justifyContent: "space-around",
-    paddingVertical: 10,
-    borderTopWidth: 1,
-    borderColor: "#e5e7eb",
+  swiperDeck: {
+    width: width,
+    height: height * 0.78,
   },
   sideLabel: {
     position: "absolute",
-    top: "45%",
-    zIndex: 100,
+    top: height * 0.35,
+    zIndex: 10,
   },
   labelText: {
-    fontSize: 32,
-    fontWeight: "bold",
-    backgroundColor: "rgb(243, 243, 243)",
-    paddingHorizontal: 15,
-    paddingVertical: 5,
-    borderRadius: 40,
-  },
-  barContainer: {
-    position: "absolute",
-    left: 0,
-    right: 0,
-    bottom: 0,
-    width: "100%",
-    height: 90,
-    flexDirection: "row",
-    justifyContent: "space-around",
-    alignItems: "center",
-    backgroundColor: "#fff",
-    borderTopWidth: 1,
-    borderTopColor: "#FF6B9A",
-    paddingBottom: 20,
-  },
-  iconButton: {
-    flexDirection: "column",
-    alignItems: "center",
-    justifyContent: "center",
-    paddingHorizontal: 30,
-  },
-  iconLabel: {
-    color: "#FF6B9A",
-    fontSize: 12,
-    marginTop: 4,
-  },
-  // SỬA 17: Thêm style cho các nút bấm
-  buttonNav: {
-    position: "absolute",
-    bottom: 90, // Nằm ngay trên Tab Bar
-    width: "100%",
-    flexDirection: "row",
-    justifyContent: "center",
-    alignItems: "center",
-    paddingBottom: 10,
-    zIndex: 100,
-  },
-  button: {
-    backgroundColor: "white",
-    width: 60,
-    height: 60,
+    fontSize: 36,
+    fontWeight: "600",
+    backgroundColor: "rgba(255,255,255,0.85)",
+    paddingHorizontal: 18,
+    paddingVertical: 8,
     borderRadius: 30,
+    shadowColor: "#000",
+    shadowOpacity: 0.05,
+    shadowOffset: { width: 0, height: 3 },
+    shadowRadius: 4,
+  },
+  centerScreen: {
+    flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    marginHorizontal: 20,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-    elevation: 5,
+  },
+  emptyText: {
+    fontSize: 16,
+    color: "white",
+    fontStyle: "italic",
   },
 });
 

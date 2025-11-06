@@ -1,6 +1,4 @@
-
-
-import React from "react";
+import React, { useEffect } from "react";
 import {
   Modal,
   View,
@@ -8,23 +6,23 @@ import {
   Image,
   TouchableOpacity,
   StyleSheet,
+  ActivityIndicator,
 } from "react-native";
 import { useAuthStore } from "@store/useAuthStore";
 import { useRouter } from "expo-router";
 import { User } from "src/types/User";
 import { LinearGradient } from "expo-linear-gradient";
-import {  usePartnerByMatchId } from "@hooks/useApi";
-
+import { usePartnerByMatchId } from "@hooks/useApi";
 
 type PopulatedMatch = {
   _id: string;
-  userIds: User[]; 
+  userIds: User[];
 };
 
 type MatchSuccessProps = {
   isVisible: boolean;
   onClose: () => void;
-  match: PopulatedMatch | null; 
+  match: PopulatedMatch | null;
 };
 
 export default function MatchSuccess({
@@ -33,25 +31,48 @@ export default function MatchSuccess({
   match,
 }: MatchSuccessProps) {
   const router = useRouter();
-  
+
   const currentUser = useAuthStore((state) => state.user);
-  const  {partner} = usePartnerByMatchId(match?._id || "");
-  
-  if (!isVisible || !match || !currentUser) return null;
+  const { partner } = usePartnerByMatchId(match?._id || "");
 
-  if (!partner) return null;
+  useEffect(() => {
+    if (isVisible) {
+      const timer = setTimeout(() => {
+        onClose();
+      }, 10000);
+      return () => clearTimeout(timer);
+    }
+  }, [isVisible]);
 
-  
+  if (!isVisible) {
+    return null;
+  }
+
+  if (!match || !currentUser) {
+    return null;
+  }
+
+  if (!partner) {
+    return (
+      <Modal visible={isVisible} transparent={true} animationType="fade">
+        <View style={styles.overlay}>
+          <ActivityIndicator size="large" color="#FF6B9A" />
+          <Text style={{ color: "white", marginTop: 10 }}>
+            Đang tải thông tin đối tác...
+          </Text>
+        </View>
+      </Modal>
+    );
+  }
+
   const currentUserAvatar =
     currentUser.profile?.photos?.[0] ??
     "https://example.com/default-avatar.png";
   const partnerAvatar =
-    partner.profile?.photos?.[0] ??
-    "https://example.com/default-avatar.png";
+    partner.profile?.photos?.[0] ?? "https://example.com/default-avatar.png";
 
-  
   const handleSendMessage = () => {
-    onClose(); 
+    onClose();
     router.push({
       pathname: "/chat/[matchId]",
       params: { matchId: match._id },
@@ -67,7 +88,6 @@ export default function MatchSuccess({
             Bạn và {partner.profile.name} đã thích nhau.
           </Text>
 
-          {/* Hiển thị 2 avatar [cite: 706-707] */}
           <View style={styles.avatarContainer}>
             <Image source={{ uri: currentUserAvatar }} style={styles.avatar} />
             <Image
@@ -99,7 +119,7 @@ export default function MatchSuccess({
 const styles = StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: "rgba(0, 0, 0, 0.75)", 
+    backgroundColor: "rgba(0, 0, 0, 0.75)",
     justifyContent: "center",
     alignItems: "center",
   },
@@ -139,7 +159,7 @@ const styles = StyleSheet.create({
   },
   avatarRight: {
     position: "absolute",
-    left: 100, 
+    left: 100,
     zIndex: 0,
   },
   buttonSend: {

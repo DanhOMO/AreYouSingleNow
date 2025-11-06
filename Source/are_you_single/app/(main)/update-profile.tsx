@@ -42,14 +42,12 @@ const UpdateProfile = () => {
 
   const [showDatePicker, setShowDatePicker] = useState(false);
 
-  // Chọn ảnh (avatar hoặc ảnh phụ)
   const handleSelectImage = async (index?: number) => {
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
       allowsEditing: true,
       quality: 1,
     });
-
     if (!result.canceled) {
       const uri = result.assets[0].uri;
       const newPhotos = [...formData.photos];
@@ -87,60 +85,41 @@ const UpdateProfile = () => {
     setFormData({ ...formData, interested: selected });
   };
 
-  // ... (các import và state giữ nguyên)
-
   const uploadImageToServer = async (uri: string) => {
     try {
-      const token = useAuthStore.getState().token; // Lấy token trực tiếp từ store
+      const token = useAuthStore.getState().token;
       const formDataUpload = new FormData();
       const fileName = `photo-${Date.now()}.jpg`;
 
-      // 1. Chuẩn bị đối tượng file cho FormData
       if (Platform.OS === "web") {
-        // Trên web (Expo Web): Cần fetch blob và tạo File object
         const blob = await fetch(uri).then((r) => r.blob());
-        // File object: new File(fileBits, fileName, options)
         formDataUpload.append(
           "image",
           new File([blob], fileName, { type: blob.type })
         );
       } else {
-        // Trên mobile (iOS/Android): Dùng URI và định nghĩa đối tượng tương thích với RN Fetch
         formDataUpload.append("image", {
           uri,
           name: fileName,
-          type: "image/jpeg", // Hoặc dựa vào type thực tế nếu có
+          type: "image/jpeg",
         } as any);
       }
 
-      // 2. Gọi API Upload
       const res = await fetch(`http://${IP}:3000/api/upload`, {
         method: "POST",
-        headers: {
-          // LƯU Ý: Không cần set 'Content-Type' cho FormData,
-          // React Native/Browser sẽ tự động set 'multipart/form-data' với boundary
-          Authorization: `Bearer ${token}`,
-        },
-        body: formDataUpload, // Gửi FormData
+        headers: { Authorization: `Bearer ${token}` },
+        body: formDataUpload,
       });
 
       const data = await res.json();
-      if (!res.ok) {
-        // Log chi tiết lỗi từ backend
-        console.error("Backend Upload Error:", data.error);
-        throw new Error(data.error || "Upload thất bại.");
-      }
-
-      // 3. Trả về link public Google Drive (data.url)
+      if (!res.ok) throw new Error(data.error || "Upload thất bại.");
       return data.url as string;
     } catch (err) {
-      console.error("Upload image error:", err);
+      console.error(err);
       Alert.alert("Lỗi", "Không thể upload ảnh, vui lòng thử lại.");
       return null;
     }
   };
-
-  // ... (các hàm khác giữ nguyên)
 
   const handleSubmit = async () => {
     try {
@@ -206,7 +185,7 @@ const UpdateProfile = () => {
       >
         <ScrollView
           showsVerticalScrollIndicator={false}
-          contentContainerStyle={{ paddingBottom: 110 }}
+          contentContainerStyle={{ paddingBottom: 120 }}
         >
           <Text style={styles.header}>Chỉnh sửa hồ sơ</Text>
 
@@ -254,21 +233,31 @@ const UpdateProfile = () => {
                 style={styles.addPhotoButton}
                 onPress={handleAddMoreImage}
               >
-                <Text style={{ fontSize: 24, color: "#FF6B9A" }}>＋</Text>
+                <Text style={{ fontSize: 24, color: "#5C3A21" }}>＋</Text>
               </TouchableOpacity>
             )}
           </View>
 
-          {/* Số điện thoại */}
-          <Text style={styles.label}>Số điện thoại</Text>
-          <TextInput
-            style={styles.input}
-            value={formData.phone}
-            keyboardType="phone-pad"
-            onChangeText={(text) => setFormData({ ...formData, phone: text })}
-          />
+          {/* Thông tin cá nhân */}
+          {[
+            { label: "Số điện thoại", key: "phone", keyboard: "phone-pad" },
+            { label: "Tên", key: "name" },
+            { label: "Chiều cao (cm)", key: "height", keyboard: "numeric" },
+            { label: "Học vấn", key: "education" },
+          ].map((field) => (
+            <View key={field.key}>
+              <Text style={styles.label}>{field.label}</Text>
+              <TextInput
+                style={styles.input}
+                value={formData[field.key]}
+                keyboardType={field.keyboard || "default"}
+                onChangeText={(text) =>
+                  setFormData({ ...formData, [field.key]: text })
+                }
+              />
+            </View>
+          ))}
 
-          {/* Ngày sinh */}
           <Text style={styles.label}>Ngày sinh</Text>
           <TouchableOpacity
             style={styles.input}
@@ -290,28 +279,7 @@ const UpdateProfile = () => {
             />
           )}
 
-          {/* Trạng thái */}
-          <Text style={styles.label}>Trạng thái</Text>
-          <Switch
-            value={formData.status}
-            onValueChange={(val) => setFormData({ ...formData, status: val })}
-          />
-
-          {/* Tọa độ */}
-          <Text style={styles.label}>Tọa độ hiện tại</Text>
-          <Text style={{ marginBottom: 10 }}>
-            Lat: {formData.location?.coordinates[1]}, Lng:{" "}
-            {formData.location?.coordinates[0]}
-          </Text>
-
-          {/* Thông tin khác */}
-          <Text style={styles.label}>Tên</Text>
-          <TextInput
-            style={styles.input}
-            value={formData.name}
-            onChangeText={(text) => setFormData({ ...formData, name: text })}
-          />
-
+          {/* Giới tính */}
           <Text style={styles.label}>Giới tính</Text>
           <View style={styles.genderContainer}>
             {["female", "male"].map((g) => (
@@ -335,23 +303,14 @@ const UpdateProfile = () => {
             ))}
           </View>
 
-          <Text style={styles.label}>Chiều cao (cm)</Text>
-          <TextInput
-            style={styles.input}
-            keyboardType="numeric"
-            value={formData.height}
-            onChangeText={(text) => setFormData({ ...formData, height: text })}
+          {/* Trạng thái */}
+          <Text style={styles.label}>Trạng thái</Text>
+          <Switch
+            value={formData.status}
+            onValueChange={(val) => setFormData({ ...formData, status: val })}
           />
 
-          <Text style={styles.label}>Học vấn</Text>
-          <TextInput
-            style={styles.input}
-            value={formData.education}
-            onChangeText={(text) =>
-              setFormData({ ...formData, education: text })
-            }
-          />
-
+          {/* Giới thiệu */}
           <Text style={styles.label}>Giới thiệu</Text>
           <TextInput
             style={[styles.input, { height: 100 }]}
@@ -360,6 +319,7 @@ const UpdateProfile = () => {
             onChangeText={(text) => setFormData({ ...formData, aboutMe: text })}
           />
 
+          {/* Sở thích */}
           <Text style={styles.label}>Sở thích</Text>
           <View style={styles.interestContainer}>
             {interestsList.map((item) => (
@@ -384,8 +344,15 @@ const UpdateProfile = () => {
             ))}
           </View>
 
+          {/* Buttons */}
           <TouchableOpacity style={styles.saveButton} onPress={handleSubmit}>
             <Text style={styles.saveText}>Lưu thay đổi</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.backButton}
+            onPress={() => router.back()}
+          >
+            <Text style={styles.backText}>Quay lại</Text>
           </TouchableOpacity>
         </ScrollView>
       </KeyboardAvoidingView>
@@ -396,12 +363,13 @@ const UpdateProfile = () => {
 export default UpdateProfile;
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#fff", padding: 20 },
+  container: { flex: 1, backgroundColor: "#FFF5E6", padding: 20 },
   header: {
     fontSize: 22,
     fontWeight: "700",
     textAlign: "center",
     marginBottom: 20,
+    color: "#5C3A21",
   },
   avatarContainer: { alignItems: "center", marginBottom: 15 },
   avatar: {
@@ -409,22 +377,27 @@ const styles = StyleSheet.create({
     height: 120,
     borderRadius: 60,
     borderWidth: 2,
-    borderColor: "#FF6B9A",
+    borderColor: "#5C3A21",
   },
-  changePhotoText: { color: "#FF6B9A", marginTop: 8, fontWeight: "600" },
+  changePhotoText: { color: "#5C3A21", marginTop: 8, fontWeight: "600" },
   extraPhotosContainer: {
     flexDirection: "row",
     flexWrap: "wrap",
-    gap: 10,
     marginTop: 10,
   },
-  extraPhoto: { width: 80, height: 80, borderRadius: 10 },
+  extraPhoto: {
+    width: 80,
+    height: 80,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: "#E0D4C8",
+  },
   addPhotoButton: {
     width: 80,
     height: 80,
     borderRadius: 10,
     borderWidth: 1.5,
-    borderColor: "#FF6B9A",
+    borderColor: "#5C3A21",
     alignItems: "center",
     justifyContent: "center",
   },
@@ -432,7 +405,7 @@ const styles = StyleSheet.create({
     position: "absolute",
     top: -5,
     right: -5,
-    backgroundColor: "#FF6B9A",
+    backgroundColor: "#5C3A21",
     width: 20,
     height: 20,
     borderRadius: 10,
@@ -440,14 +413,22 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     zIndex: 10,
   },
-  label: { fontSize: 14, fontWeight: "600", marginTop: 10, color: "#333" },
+  label: { fontSize: 14, fontWeight: "600", marginTop: 15, color: "#5C3A21" },
   input: {
-    backgroundColor: "#f7f7f7",
+    backgroundColor: "#FDF6F0",
     borderRadius: 10,
     paddingHorizontal: 12,
     paddingVertical: 10,
     fontSize: 14,
     marginTop: 5,
+    color: "#333",
+    borderWidth: 1.5,
+    borderColor: "#FDF6F0", // nâu đậm
+    shadowColor: "#5C3A21",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
+    elevation: 2,
   },
   genderContainer: {
     flexDirection: "row",
@@ -461,7 +442,7 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     paddingHorizontal: 20,
   },
-  genderActive: { backgroundColor: "#FF6B9A", borderColor: "#FF6B9A" },
+  genderActive: { backgroundColor: "#5C3A21", borderColor: "#5C3A21" },
   genderText: { color: "#555" },
   genderTextActive: { color: "#fff" },
   interestContainer: { flexDirection: "row", flexWrap: "wrap", marginTop: 10 },
@@ -474,19 +455,43 @@ const styles = StyleSheet.create({
     marginRight: 8,
     marginBottom: 8,
   },
-  interestActive: { backgroundColor: "#FF6B9A", borderColor: "#FF6B9A" },
+  interestActive: { backgroundColor: "#5C3A21", borderColor: "#5C3A21" },
   interestText: { color: "#555" },
   interestTextActive: { color: "#fff" },
   saveButton: {
-    backgroundColor: "#FF6B9A",
+    backgroundColor: "#5C3A21",
     paddingVertical: 12,
     borderRadius: 25,
     marginTop: 25,
+  },
+  backButton: {
+    backgroundColor: "#FDF6F0",
+    paddingVertical: 12,
+    borderRadius: 25,
+    marginTop: 15,
+    borderWidth: 1,
+    borderColor: "#5C3A21",
   },
   saveText: {
     color: "#fff",
     fontSize: 16,
     fontWeight: "700",
     textAlign: "center",
+    shadowColor: "#5C3A21",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4.65,
+    elevation: 8,
+  },
+  backText: {
+    color: "#5C3A21",
+    fontSize: 16,
+    fontWeight: "700",
+    textAlign: "center",
+    shadowColor: "#5C3A21",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4.65,
+    elevation: 8,
   },
 });
