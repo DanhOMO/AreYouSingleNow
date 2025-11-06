@@ -9,9 +9,11 @@ exports.register = async (req, res) => {
     if (userExists) {
       return res.status(400).json({ message: "Email đã được sử dụng" });
     }
-
-    const user = await User.create({
+    const profile1 = {
       name: name || email.split("@")[0],
+    }
+    const user = await User.create({
+      profile: profile1,
       email,
       password,
     });

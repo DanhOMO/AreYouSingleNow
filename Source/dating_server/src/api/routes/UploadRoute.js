@@ -12,6 +12,6 @@ router.post("/avatar", authMiddleware, multerUploads, uploadAvatar);
 
 router.post("/photo", authMiddleware, multerUploads, uploadPhoto);
 
-router.delete("/photo", authMiddleware, deletePhoto);
+router.delete("/photo/delete", authMiddleware, deletePhoto);
 
 module.exports = router;

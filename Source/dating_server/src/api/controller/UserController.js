@@ -75,8 +75,7 @@ exports.getWhoLikeMe = async (req, res) => {
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
-};
-exports.updateProfile = async (req, res) => {
+};exports.updateProfile = async (req, res) => {
   const { phone, status, profile, detail, location } = req.body;
 
   try {
@@ -90,21 +89,33 @@ exports.updateProfile = async (req, res) => {
     user.location = location || user.location;
 
     if (profile) {
+      if (!user.profile) {
+        user.profile = {}; // <-- KHỞI TẠO OBJECT
+      }
       user.profile.name = profile.name || user.profile.name;
       user.profile.gender = profile.gender || user.profile.gender;
       user.profile.aboutMe = profile.aboutMe || user.profile.aboutMe;
       user.profile.dob = profile.dob || user.profile.dob;
+      
+      // SỬA LỖI 2: Thêm 'photos' (bạn đã quên)
+      user.profile.photos = profile.photos || user.profile.photos;
     }
 
+    // SỬA LỖI 1: Khởi tạo 'detail' nếu nó chưa tồn tại
     if (detail) {
+      if (!user.detail) {
+        user.detail = {}; // <-- KHỞI TẠO OBJECT
+      }
       user.detail.height = detail.height || user.detail.height;
       user.detail.education = detail.education || user.detail.education;
       user.detail.interested = detail.interested || user.detail.interested;
     }
 
     await user.save();
+    console.log("luu thanh cong");
     res.status(200).json(user);
   } catch (err) {
+    console.error("Lỗi khi cập nhật profile:", err); // Thêm log lỗi
     res
       .status(500)
       .json({ msg: "Lỗi server khi cập nhật profile", error: err.message });
