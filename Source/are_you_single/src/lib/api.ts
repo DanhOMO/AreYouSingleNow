@@ -42,20 +42,18 @@ const uploadImage = async (uri: string, endpoint: 'avatar' | 'photo') => {
   } as any); 
 
   try {
-    const response = await api.post(
-      `/upload/${endpoint}`, 
-      formData, 
-      {
-        transformRequest: (data, headers) => {
-          delete headers['Content-Type'];
-          return data;
-        },
-        
-      }
-    );
-    
-    return response.data; 
-  } catch (error: any) {
+  const response = await api.post(
+    `/upload/${endpoint}`, 
+    formData, 
+    {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    }
+  );
+  
+  return response.data; 
+} catch (error: any) {
     console.error(`Lỗi khi upload ${endpoint}:`, error.response?.data || error.message);
     throw error;
   }

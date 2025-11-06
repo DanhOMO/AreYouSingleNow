@@ -11,14 +11,23 @@ exports.register = async (req, res) => {
     }
 
     const user = await User.create({
-      name,
+      name: name || email.split("@")[0],
       email,
       password,
     });
 
-    res.status(201).json({ success: true });
+    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
+      expiresIn: "30d",
+    });
+    user.password = undefined;
+    res.status(201).json({
+      success: true,
+      message: "Tài khoản tạo thành công!",
+      token,
+      user,
+    });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ success: false, message: error.message });
   }
 };
 

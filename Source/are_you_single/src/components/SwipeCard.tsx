@@ -61,7 +61,7 @@ const SwipeCard: React.FC<SwipeCardProps> = ({ user, onLike, onDislike }) => {
     user?.profile?.photos?.[0] ??
     "https://placehold.co/400x600/C8C8C8/1A1A1A?text=Minimal+Image";
   const userName = user.profile?.name ?? "Người dùng ẩn danh";
-  const yearDob = new Date(user.profile?.dob).getFullYear();
+  const yearDob = new Date((user.profile?.dob)!).getFullYear();
   const today = new Date();
   let userAge = today.getFullYear() - yearDob;
 
