@@ -144,7 +144,6 @@ export function useHandleLike() {
     isError: error,
   };
 }
-// handle Dislike /dislike
 export function useHandleDisLike(){
   const {
     data,
