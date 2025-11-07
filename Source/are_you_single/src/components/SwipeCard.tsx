@@ -60,11 +60,23 @@ const SwipeCard: React.FC<SwipeCardProps> = ({ user, onLike, onDislike }) => {
   const photo =
     user?.profile?.photos?.[0] ??
     "https://placehold.co/400x600/C8C8C8/1A1A1A?text=Minimal+Image";
-  const userName = user.profile?.name ?? "Người dùng ẩn danh";
-  const yearDob = new Date((user.profile?.dob)!).getFullYear();
-  const today = new Date();
-  let userAge = today.getFullYear() - yearDob;
+    const userName = user.profile?.name ?? "Người dùng ẩn danh";
 
+    let userAge: number | null = null;
+    const dob = user.profile?.dob;
+
+    if (dob) { 
+  const birthDate = new Date(dob);
+  if (!isNaN(birthDate.getTime())) { 
+    const today = new Date();
+    userAge = today.getFullYear() - birthDate.getFullYear();
+    const monthDiff = today.getMonth() - birthDate.getMonth();
+    
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+      userAge--;
+    }
+  }
+}
   const infoSectionMarginStyle = {
     marginHorizontal: 0,
     marginVertical: 10,
@@ -99,7 +111,7 @@ const SwipeCard: React.FC<SwipeCardProps> = ({ user, onLike, onDislike }) => {
               >
                 {userName}
               </Text>
-              {userAge && <Text style={styles.profileAge}>{userAge} tuổi</Text>}
+              {userAge && userAge > 0 && <Text style={styles.profileAge}>{userAge} tuổi</Text>}
             </View>
           </ImageBackground>
           <TouchableOpacity style={styles.heartIcon}>

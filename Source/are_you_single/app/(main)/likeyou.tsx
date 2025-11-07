@@ -195,7 +195,12 @@ const LikeYou = () => {
       <MatchSuccess
         isVisible={matchSuccessInfo !== null}
         match={matchSuccessInfo}
-        onClose={() => setMatchSuccessInfo(null)}
+        onClose={() => 
+        {
+          setMatchSuccessInfo(null)
+          mutateLikedUsers();
+        }
+        }
       />
     </LinearGradient>
   );
