@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { io, Socket } from "socket.io-client";
 import { IP } from "src/types/type";
 
-const SOCKET_URL = `http://${IP}:3000`;
+const SOCKET_URL = IP;
 
 const socket: Socket = io(SOCKET_URL, {
   autoConnect: false,
