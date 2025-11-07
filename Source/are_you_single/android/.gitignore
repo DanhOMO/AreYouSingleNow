@@ -17,5 +17,4 @@ local.properties
 
 # Thư mục Android Studio / IDEA
 .idea/
-.gradle/
 *.iml

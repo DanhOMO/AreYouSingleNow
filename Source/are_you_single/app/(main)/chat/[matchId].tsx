@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   View,
   Text,
@@ -36,6 +36,7 @@ export default function ChatDetail() {
   const [inputText, setInputText] = useState("");
   const router = useRouter();
   const socket = useSocket(matchId);
+  const flatListRef = useRef<FlatList<Message>>(null);
 
   useEffect(() => {
     if (!socket) return;
@@ -69,6 +70,7 @@ export default function ChatDetail() {
           return [newMessage, ...currentMessages];
         }
       }, false);
+      flatListRef.current?.scrollToIndex({ index: 0, animated: true });
     };
 
     socket.on("newMessage", handleNewMessage);
@@ -106,6 +108,7 @@ export default function ChatDetail() {
     });
 
     setInputText("");
+    flatListRef.current?.scrollToIndex({ index: 0, animated: true });
   };
 
   const handleVideoCall = (callID: string) => {
@@ -137,10 +140,9 @@ export default function ChatDetail() {
         }}
       >
         <KeyboardAvoidingView
-          style={styles.kavContainer} // (Style đã được sửa ở dưới)
+          style={styles.kavContainer} 
           behavior={Platform.OS === "ios" ? "padding" : "height"}
         >
-          {/* 1. Header (UI 'main' + Nút 'HEAD') */}
           <View style={styles.headerContainer}>
             <TouchableOpacity onPress={() => router.push("/chat")}>
               <Ionicons name="chevron-back" size={26} color="#FF6B9A" />
@@ -160,8 +162,11 @@ export default function ChatDetail() {
             </TouchableOpacity>
           </View>
 
-          {/* 2. Body (Xóa View thừa, dùng 'inverted' từ HEAD) */}
-          <FlatList
+         <View style={{ 
+            height: Platform.OS === 'android' ? '86%' : '72%' 
+  }}>
+           <FlatList
+            ref={flatListRef}
             style={styles.listContainer}
             data={messages}
             keyExtractor={(item) => item._id!.toString()}
@@ -177,6 +182,7 @@ export default function ChatDetail() {
             keyboardDismissMode="on-drag"
             contentContainerStyle={styles.listContentContainer}
           />
+         </View>
 
           <View style={styles.inputContainer}>
             <TouchableOpacity>
