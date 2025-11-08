@@ -1,4 +1,4 @@
-# Dự án Ứng dụng Hẹn hò (HeartSync)
+# Dự án Ứng dụng Hẹn hò (AreYouSingleNow)
 
 Đây là dự án ứng dụng hẹn hò đa nền tảng (React Native) trong khuôn khổ môn học Lập trình Di động.
 
