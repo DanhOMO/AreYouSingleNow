@@ -24,7 +24,7 @@ exports.getMessages = async (req, res) => {
         .json({ message: "Bạn không có quyền truy cập cuộc trò chuyện này" });
     }
 
-    const messages = await Message.find({ matchId });
+    const messages = await Message.find({ matchId }).sort({ createdAt: -1 });
 
     res.status(200).json(messages);
   } catch (error) {
