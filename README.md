@@ -24,7 +24,7 @@ Hệ thống được xây dựng theo kiến trúc 3 lớp:
 
 1.  **Đi đến thư mục Backend:**
     ```bash
-    cd Source/dating_server
+    cd src/index.js
     ```
 
 2.  **Cài đặt thư viện:**
